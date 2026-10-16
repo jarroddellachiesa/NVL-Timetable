@@ -65,6 +65,7 @@ body.disp .ctl,body.disp .ctl2{display:none}body.disp table{font-size:clamp(16px
 <div class="pn" id="opv"><div><h2>OPERATOR</h2><div class="r"><label>Train <select id="opt"></select></label><span id="ope" style="font-style:italic"></span><label style="margin-left:auto">Your name <input id="opw" placeholder="optional" style="width:8em"></label></div>
 <div id="opl" style="font-size:.8em"></div><div style="font-weight:bold;letter-spacing:.1em">ENGINE <span id="open" style="font-weight:normal"></span> <button id="opce" style="font-size:.7em;display:none">CHANGE ENGINE</button></div><div class="bg" id="opeg"></div><div style="font-weight:bold;letter-spacing:.1em">CONSIST <span id="opcn" style="font-weight:normal"></span> <button id="opcc" style="font-size:.7em;display:none">CHANGE CONSIST</button></div><div class="bg" id="opcg"></div><div id="opwarn" style="color:#c0261b;font-weight:bold"></div><div style="font-weight:bold;letter-spacing:.1em">LOCATION</div><div class="bg" id="opg"></div><div style="font-weight:bold;letter-spacing:.1em">STATE</div><div class="bg" id="ops"></div>
 <div class="r"><button id="opr" class="alt" style="font-size:1.1em;padding:.6em 2em">SEND REPORT</button><span id="opk"></span><button id="opc" style="background:#777;margin-left:auto">CLOSE</button></div></div></div>
+<div class="pn" id="dlg" style="z-index:20"><div style="max-width:640px;text-align:center"><div id="dlgm" style="margin:.4em 0 .8em;font-weight:bold"></div><input id="dlgi" style="width:100%;display:none;margin-bottom:.8em"><div class="r" style="justify-content:center"><button id="dlgn" style="background:#777">CANCEL</button><button id="dlgy" class="alt">YES</button></div></div></div>
 <div class="fm" id="fm"><form id="ff" onsubmit="return false"><h2 id="fh">ADD TRAIN</h2><div class="g">
 <label>TIME <span id="tlab" style="font-weight:normal;font-style:italic;font-size:.8em">(minutes from start)</span><input id="f_t" type="number" min="0" max="999" step="1" required><input id="f_tc" type="time" class="cu"></label>
 <label>TRAIN<select id="f_tr" data-cu="f_trc"><option value="Excursion Train">Excursion Train</option><option value="Steamboat Train">Steamboat Train</option><option value="Prairie Fire Sunset Dinner Train">Prairie Fire Sunset Dinner Train</option><option value="Harvest Train">Harvest Train</option><option value="Freight Train">Freight Train</option><option value="__c">Custom…</option></select><input id="f_trc" class="cu" placeholder="Train name"></label>
@@ -100,17 +101,17 @@ for(const r of [...S.rows].sort((a,b)=>T(a)-T(b)||a.id-b.id)){const s=stat(r,e);
 $("up").innerHTML=up||`<tr><td colspan="6">${S.rows.length?"All trains tied up. Session complete.":"No trains scheduled. Tap + ADD TRAIN."}</td></tr>`;$("dn").innerHTML=dn;
 $("nx").innerHTML=nx?`<span>NEXT: <b>${esc(nx.train).toUpperCase()}</b>${engOf(nx.train)!=="—"?" · Engine "+esc(engOf(nx.train)):""} · ${esc(nx.frm)} → ${esc(nx.to)}</span><span>${e>=T(nx)?"<b>Departing now</b>":"Departs in <b>"+mmss(T(nx)-e).replace(/^0/,"")+"</b>"}</span>`:"<span>No further departures</span>";
 $("dep").className=S.hide?"hide":"";$("dh").textContent="DEPARTED / CANCELLED "+(S.hide?"▸":"▾");}
-const resetSess=()=>{S.el=0;S.run=false;S.ov={};S.nt={}};
+const resetSess=()=>{S.el=0;S.run=false;S.ov={};S.nt={};S.ep=(typeof now==="function"?now():Date.now());S.rep={};S.clr={}};
 $("go").onclick=()=>{if(!S.run){S.at=Date.now();S.run=true;sv();draw()}};
 $("ps").onclick=()=>{if(S.run){S.el=el();S.run=false;sv();draw()}};
-$("rs").onclick=()=>{if(confirm("Reset the session clock and all statuses? (Schedule rows are kept.)")){resetSess();sv();draw()}};
+$("rs").onclick=async()=>{if(await ask("Reset the session clock and all statuses? (Schedule rows are kept.)")){resetSess();sv();draw()}};
 $("st").value=S.start;$("wm").checked=S.wall;
 $("st").onchange=e=>{S.start=e.target.value||"19:00";sv();draw()};$("wm").onchange=e=>{S.wall=e.target.checked;sv();draw()};
 $("dh").onclick=()=>{S.hide=!S.hide;sv();draw()};
 function loadSched(v){S.sched=v;S.rows=v==="tt1"?JSON.parse(JSON.stringify(TT1)):v.startsWith("sv:")?JSON.parse(JSON.stringify(SAV[v.slice(3)]||[])):[];resetSess()}
-$("pk").onchange=e=>{const v=e.target.value;if(confirm("Switch schedule? This resets the clock and all statuses.")){loadSched(v);sv()}picker();draw()};
-$("sa").onclick=()=>{const n=(prompt("Save this schedule as:",S.sched.startsWith("sv:")?S.sched.slice(3):"")||"").trim();if(!n)return;if(SAV[n]&&!confirm(`Replace saved schedule "${n}"?`))return;SAV[n]=JSON.parse(JSON.stringify(S.rows));S.sched="sv:"+n;sv();picker();draw()};
-$("cl").onclick=()=>{if(confirm("Clear every row from this schedule?")){S.rows=[];resetSess();sv();draw()}};
+$("pk").onchange=async e=>{const v=e.target.value;if(await ask("Switch schedule? This resets the clock and all statuses.")){loadSched(v);sv()}picker();draw()};
+$("sa").onclick=async()=>{const n=(await askText("Save this schedule as:",S.sched.startsWith("sv:")?S.sched.slice(3):"")||"").trim();if(!n)return;if(SAV[n]&&!await ask(`Replace saved schedule "${n}"?`))return;SAV[n]=JSON.parse(JSON.stringify(S.rows));S.sched="sv:"+n;sv();picker();draw()};
+$("cl").onclick=async()=>{if(await ask("Clear every row from this schedule?")){S.rows=[];resetSess();sv();draw()}};
 // form
 let edit=null;
 function cu(sel){const c=$(sel.dataset.cu);if(c)c.classList.toggle("on",sel.value==="__c")}
@@ -124,7 +125,7 @@ setSel("f_tr",r?r.train:"Excursion Train");setSel("f_fr",r?r.frm:"Red Rock Junct
 $("fm").classList.add("on")}
 const gv=id=>{const s=$(id);return s.value==="__c"?$(s.dataset.cu).value.trim():s.value};
 $("fc").onclick=()=>$("fm").classList.remove("on");
-$("fs").onclick=()=>{let m;if(S.wall){const v=$("f_tc").value;if(!v){alert("Enter a time.");return}const[a,b]=v.split(":").map(Number),[h,mm]=hm();m=((a*60+b)-(h*60+mm)+1440)%1440}else{m=parseFloat($("f_t").value);if(isNaN(m)||m<0){alert("Enter minutes from start.");return}}
+$("fs").onclick=async()=>{let m;if(S.wall){const v=$("f_tc").value;if(!v){await tell("Enter a time.");return}const[a,b]=v.split(":").map(Number),[h,mm]=hm();m=((a*60+b)-(h*60+mm)+1440)%1440}else{m=parseFloat($("f_t").value);if(isNaN(m)||m<0){await tell("Enter minutes from start.");return}}
 const r={t:Math.round(m*60),train:gv("f_tr")||"Train",eng:"",frm:gv("f_fr"),to:gv("f_to"),hold:$("f_no").value.trim()};
 if(edit!=null){const o=byId(edit);Object.assign(o,r);delete S.nt[edit]}else{r.id=nid();S.rows.push(r)}
 sv();$("fm").classList.remove("on");draw()};
@@ -132,10 +133,15 @@ $("ad").onclick=()=>openForm(null);
 // tap menu
 let pick=null;
 document.addEventListener("click",ev=>{const tr=ev.target.closest("tr.r");if(tr&&!document.body.classList.contains("disp")){pick=+tr.dataset.i;const r=byId(pick);$("mt").textContent=tl(T(r))+"  "+r.train.toUpperCase();$("nt").value=Math.round(T(r)/60);$("mn").classList.add("on")}});
-$("mn").onclick=ev=>{const b=ev.target.closest("button");if(!b&&ev.target!==$("mn"))return;const r=byId(pick);
-if(b&&b.dataset.e){$("mn").classList.remove("on");if(b.dataset.e==="edit")openForm(r);else if(confirm(`Delete ${tl(T(r))} ${r.train}?`)){S.rows=S.rows.filter(x=>x.id!==pick);delete S.ov[pick];delete S.nt[pick];sv();draw()}return}
+$("mn").onclick=async ev=>{const b=ev.target.closest("button");if(!b&&ev.target!==$("mn"))return;const r=byId(pick);
+if(b&&b.dataset.e){$("mn").classList.remove("on");if(b.dataset.e==="edit")openForm(r);else if(await ask(`Delete ${tl(T(r))} ${r.train}?`)){S.rows=S.rows.filter(x=>x.id!==pick);delete S.ov[pick];delete S.nt[pick];sv();draw()}return}
 if(b&&b.dataset.d){const d=b.dataset.d;if(d==="orig")delete S.nt[pick];else if(d==="set"){const v=parseFloat($("nt").value);if(isNaN(v))return;S.nt[pick]=Math.round(v*60)}else S.nt[pick]=T(r)+60*d;if(S.nt[pick]===r.t)delete S.nt[pick];if(d!=="orig"&&S.ov[pick]==="Departed"&&el()<S.nt[pick])delete S.ov[pick];sv();$("mn").classList.remove("on");draw();return}
 if(b&&b.dataset.s!=="x"){if(b.dataset.s)S.ov[pick]=b.dataset.s;else delete S.ov[pick];sv()}$("mn").classList.remove("on");draw()};
+// ---- in-page dialogs (native confirm/prompt can be blocked) ----
+let dlgQ=Promise.resolve();
+function dlg(msg,opt){const run=()=>new Promise(res=>{const d=$("dlg"),i=$("dlgi"),y=$("dlgy"),n=$("dlgn");$("dlgm").textContent=msg;i.style.display=opt.input!=null?"":"none";i.value=opt.input||"";y.textContent=opt.ok||"YES";n.style.display=opt.alert?"none":"";n.textContent=opt.cancel||"CANCEL";
+const done=v=>{d.classList.remove("on");y.onclick=n.onclick=i.onkeydown=null;res(v)};y.onclick=()=>done(opt.input!=null?i.value:true);n.onclick=()=>done(opt.input!=null?null:false);i.onkeydown=e=>{if(e.key==="Enter")y.click()};d.classList.add("on");if(opt.input!=null)setTimeout(()=>i.focus(),50)});const p=dlgQ.then(run);dlgQ=p.catch(()=>{});return p}
+const ask=m=>dlg(m,{}),askText=(m,v)=>dlg(m,{input:v||"",ok:"SAVE"}),tell=m=>dlg(m,{alert:1,ok:"OK"});
 // ---- sync + operators ----
 const KC="nvl-sync-code",ME=(localStorage.getItem("nvl-dev")||(()=>{const x=Math.random().toString(36).slice(2,10);localStorage.setItem("nvl-dev",x);return x})());
 S.rep=S.rep||{};S.v=S.v||0;S.rows.forEach(r=>r.eng="");for(const k of Object.keys(SAV))SAV[k].forEach(r=>r.eng="");
@@ -148,22 +154,22 @@ function sample(t,l){offs.push(t*1000+500-l);if(offs.length>15)offs.shift()}
 async function gz(s){if(!window.CompressionStream)return null;const b=await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();let o="";const u=new Uint8Array(b);for(let i=0;i<u.length;i++)o+=String.fromCharCode(u[i]);return btoa(o)}
 async function ungz(b){const u=Uint8Array.from(atob(b),c=>c.charCodeAt(0));return new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("gzip"))).text()}
 async function post(obj){if(!code)return;const l=Date.now();try{const r=await fetch(NT+topic(code),{method:"POST",body:JSON.stringify(obj)});const j=await r.json();if(j.time)sample(j.time,(l+Date.now())/2);if(!r.ok)throw Error(r.status);lastErr=""}catch(e){lastErr="send failed";setDot()}}
-function snapState(){const o={el:S.el,run:S.run,at:S.run?S.at+off():0,ov:S.ov,nt:S.nt,sched:S.sched,rows:S.rows,start:S.start,rep:S.rep,clr:S.clr};return o}
+function snapState(){const o={el:S.el,run:S.run,at:S.run?S.at+off():0,ov:S.ov,nt:S.nt,sched:S.sched,rows:S.rows,start:S.start,rep:S.rep,clr:S.clr,ep:S.ep||0};return o}
 async function pubSnap(){const js=JSON.stringify(snapState());const z=await gz(js);const m={n:"nvl",k:"snap",from:ME,v:S.v,...(z?{z:1,d:z}:{d:js})};if(JSON.stringify(m).length>4000){lastErr="schedule too large to sync";setDot();return}post(m)}
-function queuePub(){if(!code)return;S.v++;localStorage.setItem(K,JSON.stringify(S));clearTimeout(pubT);pubT=setTimeout(pubSnap,150)}
-function mergeMap(M,r){let ch=false;for(const[t,x]of Object.entries(r||{})){const c=M[t];if(!c||x.ts>c.ts){M[t]=x;ch=true}}return ch}
+function queuePub(){if(!code)return;S.v=Math.max((S.v||0)+1,Math.floor(now()));localStorage.setItem(K,JSON.stringify(S));clearTimeout(pubT);pubT=setTimeout(pubSnap,150)}
+function mergeMap(M,r){let ch=false;for(const[t,x]of Object.entries(r||{})){if(!x||(x.ts||0)<(S.ep||0))continue;const c=M[t];if(!c||x.ts>c.ts){M[t]=x;ch=true}}return ch}
 function mergeRep(r){return mergeMap(S.rep,r)}
 async function onMsg(m,live){let o;try{o=JSON.parse(m.message)}catch(e){return}if(!o||o.n!=="nvl"||o.from===ME)return;
 if(o.k==="rep"||o.k==="clr"){S.clr=S.clr||{};if(mergeMap(o.k==="rep"?S.rep:S.clr,{[o.train]:o.r})){applying=true;sv();applying=false}return}
 if(o.k==="snap"){if(!(o.v>S.v||(o.v===S.v&&o.from>ME)))return;const d=JSON.parse(o.z?await ungz(o.d):o.d);
-Object.assign(S,{el:d.el,run:d.run,at:d.run?d.at-off():0,ov:d.ov||{},nt:d.nt||{},sched:d.sched,rows:d.rows||[],start:d.start});mergeRep(d.rep);S.clr=S.clr||{};mergeMap(S.clr,d.clr);S.v=o.v;
+Object.assign(S,{el:d.el,run:d.run,at:d.run?d.at-off():0,ov:d.ov||{},nt:d.nt||{},sched:d.sched,rows:d.rows||[],start:d.start});if((d.ep||0)>(S.ep||0)){S.ep=d.ep;const keep=M=>Object.fromEntries(Object.entries(M||{}).filter(([k,x])=>x&&(x.ts||0)>=S.ep));S.rep=keep(S.rep);S.clr=keep(S.clr)}mergeRep(d.rep);S.clr=S.clr||{};mergeMap(S.clr,d.clr);S.v=o.v;
 applying=true;sv();applying=false;picker();$("st").value=S.start}}
 function setDot(){const d=$("dot");if(!d)return;const ok=code&&online&&!lastErr;d.className="dot "+(code?ok?"on":"off":"");d.title=code?(ok?"Synced · "+code:"Offline"+(lastErr?" · "+lastErr:"")):"Sync off";$("syc").textContent=code?code:"Not shared";$("sys").textContent=code?(ok?"● Connected":"● Offline – "+(lastErr||"reconnecting…")):"Sync is off. This screen runs on its own."}
-async function join(c,host){c=c.trim().toUpperCase();if(!/^NVL-[A-Z0-9]{6}$/.test(c)){alert("Session codes look like NVL-ABC234.");return}leave(true);code=c;localStorage.setItem(KC,c);setDot();
+async function join(c,host){c=c.trim().toUpperCase();if(!/^NVL-[A-Z0-9]{6}$/.test(c)){await tell("Session codes look like NVL-ABC234.");return}leave(true);code=c;localStorage.setItem(KC,c);setDot();
 try{const r=await fetch(NT+topic(c)+"/json?poll=1&since=12h");const t=await r.text();for(const ln of t.split("\n"))if(ln.trim())await onMsg(JSON.parse(ln),false)}catch(e){lastErr="could not reach relay"}
 es=new EventSource(NT+topic(c)+"/sse");es.onopen=()=>{online=true;lastErr="";setDot()};es.onerror=()=>{online=false;setDot()};
 es.onmessage=ev=>{const m=JSON.parse(ev.data);if(m.event==="message"){sample(m.time,Date.now());onMsg(m,true)}};
-if(host){S.v++;sv0();pubSnap()}draw();setDot()}
+if(host){S.v=Math.max((S.v||0)+1,Math.floor(now()));sv0();pubSnap()}draw();setDot()}
 function leave(q){if(es)es.close();es=null;code=null;online=false;if(!q)localStorage.removeItem(KC);setDot()}
 function newCode(){const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",r=crypto.getRandomValues(new Uint8Array(6));return"NVL-"+[...r].map(x=>A[x%32]).join("")}
 const sv0=sv;sv=()=>{sv0();if(!applying)queuePub()};
@@ -171,7 +177,7 @@ $("sy").onclick=()=>{setDot();$("syl").textContent=code?location.href.split("?")
 $("syx").onclick=()=>$("syp").classList.remove("on");
 $("syh").onclick=()=>{join(newCode(),true).then(()=>{$("syl").textContent=location.href.split("?")[0]+"?join="+code})};
 $("syj").onclick=()=>join($("syi").value,false).then(()=>{$("syl").textContent=code?location.href.split("?")[0]+"?join="+code:""});
-$("syo").onclick=()=>{if(confirm("Stop syncing this screen?"))leave()};
+$("syo").onclick=async()=>{if(await ask("Stop syncing this screen?"))leave()};
 // operator
 const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","The Wye","Lookout loop","Pumpkin Patch","Indian Gulch","On the main"],STS=["Departed","Arrived","Holding","Running late","In the clear"];
 let OP={train:localStorage.getItem("nvl-op-train")||"",who:localStorage.getItem("nvl-op-who")||"",loc:"",st:""};
@@ -189,21 +195,21 @@ for(const b of document.querySelectorAll("#opg button"))b.classList.toggle("sel"
 const CONSISTS=["Freight","Red Rocket","Dinner Train","Shorties","Excursion","Harvest"];
 $("opcg").innerHTML=CONSISTS.map(c=>`<button data-c="${c}">${c}</button>`).join("");
 $("opcc").onclick=()=>{OP.cchg=true;drawOp()};
-$("opcg").onclick=ev=>{const b=ev.target.closest("button");if(!b||!OP.train)return;const c=b.dataset.c;const other=Object.entries(S.rep).find(([t,x])=>t!==OP.train&&x.con===c);
-if(other&&!confirm(`The ${c} consist is already on the ${other[0]}${other[1].who?" ("+other[1].who+")":""}. Use it anyway?`))return;
+$("opcg").onclick=async ev=>{const b=ev.target.closest("button");if(!b||!OP.train)return;const c=b.dataset.c;const other=Object.entries(S.rep).find(([t,x])=>t!==OP.train&&x.con===c);
+if(other&&!await ask(`The ${c} consist is already on the ${other[0]}${other[1].who?" ("+other[1].who+")":""}. Use it anyway?`))return;
 $("opwarn").textContent=other?`⚠ ${c} consist is also reported on the ${other[0]}.`:"";OP.cchg=false;report(OP.train,"","",OP.who,"",c);drawOp()};
 const ROSTER=[["4520","4520 · UP USRA 0-8-0"],["322","322 · WP MK60 Mikado 2-8-2"],["620","620 · Market Street Trolley"],["6054","6054 · NVL GP7/9"],["No. 3","No. 3 · The General W&A 4-4-0"],["2727","2727 · UP ET44C4"]];
 $("opeg").innerHTML=ROSTER.map(([e,l])=>`<button data-e="${e}">${l}</button>`).join("");
 $("opce").onclick=()=>{OP.chg=true;drawOp()};
-$("opeg").onclick=ev=>{const b=ev.target.closest("button");if(!b||!OP.train)return;const e=b.dataset.e;const other=Object.entries(S.rep).find(([t,x])=>t!==OP.train&&x.eng===e);
-if(other&&!confirm(`Engine ${e} is already on the ${other[0]}${other[1].who?" ("+other[1].who+")":""}. Use it anyway?`)){$("opwarn").textContent="";return}
+$("opeg").onclick=async ev=>{const b=ev.target.closest("button");if(!b||!OP.train)return;const e=b.dataset.e;const other=Object.entries(S.rep).find(([t,x])=>t!==OP.train&&x.eng===e);
+if(other&&!await ask(`Engine ${e} is already on the ${other[0]}${other[1].who?" ("+other[1].who+")":""}. Use it anyway?`)){$("opwarn").textContent="";return}
 $("opwarn").textContent=other?`⚠ ${e} is also reported on the ${other[0]}.`:"";OP.chg=false;report(OP.train,"","",OP.who,e);drawOp()};
 $("opg").innerHTML=LOCS.map(l=>`<button data-l="${l}">${l}</button>`).join("");$("ops").innerHTML=STS.map(l=>`<button data-s="${l}">${l.toUpperCase()}</button>`).join("");
 $("opg").onclick=e=>{const b=e.target.closest("button");if(b){OP.loc=b.dataset.l;drawOp()}};$("ops").onclick=e=>{const b=e.target.closest("button");if(b){OP.st=b.dataset.s;drawOp()}};
 $("opt").onchange=e=>{OP.train=e.target.value;OP.loc=OP.st="";OP.chg=false;OP.cchg=false;$("opwarn").textContent="";localStorage.setItem("nvl-op-train",OP.train);drawOp()};
 $("opw").value=OP.who;$("opw").onchange=e=>{OP.who=e.target.value.trim();localStorage.setItem("nvl-op-who",OP.who)};
 function report(train,loc,st,who,eng,con){const prev=S.rep[train]||{};const r={loc:loc||prev.loc||"",st:st||prev.st||"",who:who||prev.who||"",eng:eng||prev.eng||"",con:con||prev.con||"",ts:now()};r.blk=loc?(loc==="On the main"?(prev.blk?nextRing(prev.blk):"RRJ"):locBlk(loc)):prev.blk;S.rep[train]=r;applying=true;sv();applying=false;post({n:"nvl",k:"rep",from:ME,train,r})}
-$("opr").onclick=()=>{if(!OP.train)return;if(!(S.rep[OP.train]&&S.rep[OP.train].eng)){alert("Pick your engine first.");return}if(!OP.loc&&!OP.st){alert("Pick a location or a state.");return}report(OP.train,OP.loc,OP.st,OP.who);OP.loc=OP.st="";drawOp();$("opk").textContent="Sent ✓";setTimeout(()=>$("opk").textContent="",1500)};
+$("opr").onclick=async()=>{if(!OP.train)return;if(!(S.rep[OP.train]&&S.rep[OP.train].eng)){await tell("Pick your engine first.");return}if(!OP.loc&&!OP.st){await tell("Pick a location or a state.");return}report(OP.train,OP.loc,OP.st,OP.who);OP.loc=OP.st="";drawOp();$("opk").textContent="Sent ✓";setTimeout(()=>$("opk").textContent="",1500)};
 $("op").onclick=()=>{$("opv").classList.add("on");drawOp()};$("opc").onclick=()=>$("opv").classList.remove("on");
 const draw0=draw;draw=()=>{draw0();drawLS()};
 
