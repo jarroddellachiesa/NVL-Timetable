@@ -233,7 +233,7 @@ $("syh").onclick=()=>{join(newCode(),true).then(()=>{$("syl").textContent=locati
 $("syj").onclick=()=>join($("syi").value,false).then(()=>{$("syl").textContent=code?location.href.split("?")[0]+"?join="+code:""});
 $("syo").onclick=async()=>{if(await ask("Stop syncing this screen?"))leave()};
 // operator
-const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","The Wye","Lookout loop","Pumpkin Patch","Indian Gulch","On the main"],STS=["Departed","Arrived","Holding","Running late","In the clear"];
+const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","The Wye","Lookout Loop","Pumpkin Patch","Indian Gulch","Town","Yard","Car Barn","On the main"],STS=["Departed","Arrived","Holding","Running late","In the clear"];
 let OP={train:localStorage.getItem("nvl-op-train")||"",who:localStorage.getItem("nvl-op-who")||"",loc:"",st:""};
 const trains=()=>{const m=new Map();for(const r of S.rows)if(!/^all trains$/i.test(r.train)&&!m.has(r.train))m.set(r.train,r.eng);return m};
 const conOf=t=>{const x=S.rep[t];return x&&x.con||""};const ec=t=>{const e=engOf(t),c=conOf(t);return e==="—"?(c||"—"):c?e+" · "+c:e};
@@ -269,25 +269,27 @@ const draw0=draw;draw=()=>{draw0();drawLS()};
 
 // ---- LINE MAP: dogbone (one main between two balloon loops). Edit these arrays to retune. ----
 // Each block: id, name, stop (station) / hold (hold point). Order = direction of travel.
-const TOWN_LOOP=[ // west balloon, run clockwise through town; the sprung wye sends trains this way
+const TOWN_LOOP=[ // town balloon, in direction of travel starting from the wye (the sprung wye sends trains this way)
+ {id:"SR",name:"Shady Rest",stop:1},
+ {id:"TWN",name:"Town",stop:1},
  {id:"RRJ",name:"Red Rock Junction",stop:1},
- {id:"CC",name:"Curiosity Canyon",hold:1},
  {id:"BAU",name:"Bautista",stop:1},
 ];
 const WYE={id:"WYE",name:"The Wye",hold:1}; // junction of the town balloon and the main
-const MAIN=[ // single-track main, listed from the wye outward
- {id:"SR",name:"Shady Rest",stop:1},
- {id:"IG",name:"Indian Gulch"},
- {id:"HH",name:"Hobo’s Hideout",stop:1},
+const MAIN=[ // single-track main, listed from the wye outward (toward Lookout Loop); pos = place along the main (0..1)
+ {id:"HH",name:"Hobo’s Hideout",stop:1,pos:0},
+ {id:"PP",name:"Pumpkin Patch",stop:1,pos:0.42},
+ {id:"IG",name:"Indian Gulch",pos:0.7},
+ {id:"CC",name:"Curiosity Canyon",hold:1,pos:1},
 ];
-const FAR_LOOP=[ // east balloon (Lookout loop), entered and left at the end of the main
- {id:"STB",name:"Steamboat",stop:1},
- {id:"LL",name:"Lookout loop",hold:1},
+const FAR_LOOP=[ // Lookout Loop (the far balloon), in direction of travel. track:1 = plain loop track, drawn as the loop itself
+ {id:"LL",name:"Lookout Loop",hold:1,track:1},
  {id:"FF",name:"Fort Frontier",stop:1},
 ];
-const BRANCHES=[{id:"PP",name:"Pumpkin Patch",at:"IG",kind:"spur",stop:1}];
+// Sidings off the line: at = block just before the turnout; the train rejoins at the next block.
+const BRANCHES=[{id:"STB",name:"Steamboat",at:"LL",kind:"siding",stop:1},{id:"CB",name:"Car Barn",at:"RRJ",kind:"siding",loop:"town",stop:1},{id:"YD",name:"Yard",at:"BAU",kind:"yard",stop:1}]; // Yard: inner loop inside the town balloon, leaves and rejoins at Bautista
 // Harvest Train backing move: Red Rock Junction straight to the wye, then out the main to the Pumpkin Patch.
-const LEGS=[{from:"RRJ",to:"PP",via:["WYE","SR","IG","PP"],label:"Harvest direct route (backing)"}];
+const LEGS=[{from:"RRJ",to:"PP",via:["WYE","HH","PP"],label:"Harvest direct route (backing)"}];
 // Full trip in order of travel (main blocks are passed twice: outbound and returning).
 const ROUTE=[...TOWN_LOOP.map(b=>b.id),WYE.id,...MAIN.map(b=>b.id),...FAR_LOOP.map(b=>b.id),...MAIN.map(b=>b.id).reverse()];
 const BLOCKS=[...TOWN_LOOP,WYE,...MAIN,...FAR_LOOP];
@@ -305,33 +307,34 @@ function mapState(){const tr=[],occ={},cl={};for(const[t,x]of Object.entries(S.r
 const bad=new Set();for(const b of ALLB){const o=(occ[b.id]||[]).length,c=(cl[b.id]||[]).length;if(o+c>1)bad.add(b.id)}return{tr,occ,cl,bad}}
 function drawMap(){const box=$("map");const vert=(box.clientWidth||window.innerWidth)<620;
 // layout in (u = along the line, v = across) then map to x,y
-const L=1200,mid=vert?310:190,Hh=mid*2,rT=125,rF=125,cT=rT+30,cF=L-rF-30,P={},sv=vert?1.55:0.92;
+const L=1500,mid=vert?310:190,Hh=mid*2,rT=vert?125:150,rF=125,cT=rT+30,cF=L-rF-30,P={},sv=vert?1.55:0.92;
 const onCircle=(cx,r,list,a0,a1)=>list.forEach((b,i)=>{const a=a0+(a1-a0)*(i+1)/(list.length+1);P[b.id]=[cx+r*Math.cos(a),mid+r*Math.sin(a)*sv]});
 onCircle(cT,rT,TOWN_LOOP,-Math.PI*0.25,-Math.PI*1.75); // around the west balloon, away from the wye
 P.WYE=[cT+rT+70,mid];
-const m0=P.WYE[0]+150,m1=cF-rF-60;MAIN.forEach((b,i)=>{P[b.id]=[m0+(m1-m0)*i/Math.max(1,MAIN.length-1),mid]});
-onCircle(cF,rF,FAR_LOOP,-Math.PI*0.75,Math.PI*0.75);
-for(const b of BRANCHES){const[x,y]=P[b.at];P[b.id]=[x,y+(b.kind==="spur"?(vert?215:120):0)]}
+const m0=P.WYE[0]+150,m1=cF-rF-60;MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,mid]});
+onCircle(cF,rF,FAR_LOOP,Math.PI*0.75,-Math.PI*0.75);
+P.LL=[cF+rF,mid];for(const b of BRANCHES){if(b.kind==="siding"&&b.loop==="town"){const a=-Math.PI*1.3,du=Math.cos(a),dv=Math.sin(a);P["_j"+b.id]=[cT+rT*du,mid+rT*sv*dv];P[b.id]=vert?[cT-rT-85,mid+rT*sv*dv+30]:[cT+(rT+70)*du-60,mid+(rT*sv+62)*dv]}else if(b.kind==="siding"){const a=-Math.PI*0.08;P["_j"+b.id]=[cF+rF*Math.cos(a),mid+rF*sv*Math.sin(a)];P[b.id]=vert?[cF+rF+85,mid-110]:[cF+rF*0.15,mid-rF*sv-70]}else if(b.kind==="yard"){const[x,y]=P[b.at];P[b.id]=[cT+(x-cT)*0.12,mid+(y-mid)*0.12]}else{const[x,y]=P[b.at];P[b.id]=[x,y+120]}}
 const W=vert?Hh:L,H=vert?L:Hh+60,X=([u,v])=>vert?[Hh-v,u]:[L-u,v];
 const pt=id=>X(P[id]);const M=mapState();let g="";
 const line=(a,b,ex="")=>{const[x1,y1]=a,[x2,y2]=b;return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3b2414" stroke-width="7" stroke-linecap="round" ${ex}/>`};
 // balloons (teardrops): circle + neck to the wye / end of main
 const ell=(cx,r)=>{const[x,y]=X([cx,mid]);return`<ellipse cx="${x}" cy="${y}" rx="${vert?r*sv:r}" ry="${vert?r:r*sv}" fill="none" stroke="#3b2414" stroke-width="7"/>`};
-g+=ell(cT,rT)+ell(cF,rF);
+g+=ell(cT,rT);{const o=M.occ.LL,c=M.cl.LL,bd=M.bad.has("LL");const[x,y]=X([cF,mid]);g+=`<ellipse class="blk" data-b="LL" cx="${x}" cy="${y}" rx="${vert?rF*sv:rF}" ry="${vert?rF:rF*sv}" fill="${o?"rgba(107,74,43,.18)":c?"rgba(232,196,106,.35)":"transparent"}" stroke="${bd?"#c0261b":o?"#6b4a2b":c?"#c9a24a":"#3b2414"}" stroke-width="${bd||o||c?11:7}" style="pointer-events:all"/>`}
 const tA=X([cT+rT*Math.cos(-0.35),mid+rT*sv*Math.sin(-0.35)]),tB=X([cT+rT*Math.cos(0.35),mid+rT*sv*Math.sin(0.35)]);
 g+=line(tA,pt("WYE"))+line(tB,pt("WYE"));
 const fA=X([cF-rF*Math.cos(-0.35),mid+rF*sv*Math.sin(-0.35)]),fB=X([cF-rF*Math.cos(0.35),mid+rF*sv*Math.sin(0.35)]),fN=X([m1+40,mid]);
 g+=line(pt("WYE"),fN)+line(fN,fA)+line(fN,fB);
-for(const b of BRANCHES)g+=line(pt(b.at),pt(b.id));
-for(const l of LEGS){const a=pt(l.from),w=pt(l.via[0]);g+=`<path d="M${a[0]},${a[1]} L${w[0]},${w[1]}" stroke="#8a2e12" stroke-width="4" stroke-dasharray="12 8" fill="none"/>`;const p=pt(l.to);g+=`<text x="${vert?p[0]-95:p[0]}" y="${p[1]+(vert?55:50)}" text-anchor="${vert?"start":"middle"}" font-style="italic" font-size="${vert?24:18}" fill="#8a2e12">${l.label}</text>`}
+for(const b of BRANCHES.filter(b=>b.kind==="yard")){const[x,y]=pt(b.id),[bx,by]=pt(b.at);const rr=vert?50:42;const dx=bx-x,dy=by-y,l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l;const ex=x+dx/l*rr,ey=y+dy/l*rr;g+=`<circle cx="${x}" cy="${y}" r="${rr}" fill="none" stroke="#3b2414" stroke-width="5"/><line x1="${bx}" y1="${by}" x2="${ex+nx*12}" y2="${ey+ny*12}" stroke="#3b2414" stroke-width="5"/><line x1="${bx}" y1="${by}" x2="${ex-nx*12}" y2="${ey-ny*12}" stroke="#3b2414" stroke-width="5"/>`}
+for(const b of BRANCHES.filter(b=>b.kind!=="yard"))g+=line(P["_j"+b.id]?X(P["_j"+b.id]):pt(b.at),pt(b.id));
+for(const l of LEGS){const pts=[l.from,...l.via].map(id=>{const[u,v]=P[id];return X([u,v+(id===l.from?0:26)])});g+=`<polyline points="${pts.map(p=>p.join(",")).join(" ")}" stroke="#8a2e12" stroke-width="4" stroke-dasharray="12 8" fill="none"/>`;const p=pts[pts.length-1],q=pts[pts.length-2];g+=`<text x="${vert?p[0]+(p[0]>q[0]?-14:14):(p[0]+q[0])/2}" y="${vert?(p[1]+q[1])/2:p[1]+30}" text-anchor="${vert?(p[0]<Hh/2?"start":"end"):"middle"}" font-style="italic" font-size="${vert?22:17}" fill="#8a2e12">${l.label}</text>`}
 const tw=vert?190:150,th=vert?50:40,fs=vert?24:17;
-for(const b of ALLB){const[x,y]=pt(b.id);const o=M.occ[b.id],c=M.cl[b.id],bd=M.bad.has(b.id);const fill=o?"#6b4a2b":c?"#e8c46a":"#fbf3dd",st=bd?"#c0261b":"#3b2414";
-const nm=b.name,f=nm.length>14?fs*0.82:fs;g+=`<g class="blk" data-b="${b.id}"><rect x="${x-tw/2}" y="${y-th/2}" width="${tw}" height="${th}" rx="9" fill="${fill}" stroke="${st}" stroke-width="${bd?6:3}"/><text x="${x}" y="${y+f*0.36}" text-anchor="middle" font-size="${f}" font-weight="bold" fill="${o?"#fbf3dd":"#3b2414"}">${esc(nm)}</text></g>`}
+for(const b of ALLB){if(b.track)continue;const[x,y]=pt(b.id);const o=M.occ[b.id],c=M.cl[b.id],bd=M.bad.has(b.id);const fill=o?"#6b4a2b":c?"#e8c46a":"#fbf3dd",st=bd?"#c0261b":"#3b2414";
+const nm=b.name,f=nm.length>14?fs*0.82:fs,tW=b.kind==="yard"?tw*0.5:tw;g+=`<g class="blk" data-b="${b.id}"><rect x="${x-tW/2}" y="${y-th/2}" width="${tW}" height="${th}" rx="9" fill="${fill}" stroke="${st}" stroke-width="${bd?6:3}"/><text x="${x}" y="${y+f*0.36}" text-anchor="middle" font-size="${f}" font-weight="bold" fill="${o?"#fbf3dd":"#3b2414"}">${esc(nm)}</text></g>`}
 const cnt={},R=vert?28:22;for(const t of M.tr){const[x,y]=pt(t.blk);const k=cnt[t.blk]=(cnt[t.blk]||0)+1;const e=engOf(t.t).split("/")[0];const lab=e!=="—"?e:t.t.slice(0,3).toUpperCase();const mx=x+(k-1)*(R*2+4)-tw/2+R,my=y-th/2-R-2;
 g+=`<g><title>${esc(t.t)} · ${esc(ec(t.t))}</title><circle cx="${mx}" cy="${my}" r="${R}" fill="#8a2e12" stroke="#fbf3dd" stroke-width="3"/><text x="${mx}" y="${my+R*0.3}" text-anchor="middle" font-size="${lab.length>4?R*0.5:R*0.68}" font-weight="900" fill="#fff">${esc(lab)}</text></g>`}
 const cap=(txt,u,v)=>{const[x,y]=X([u,v]);return`<text x="${x}" y="${y}" text-anchor="middle" font-size="${vert?22:16}" font-style="italic" fill="#6b4a2b" letter-spacing="2">${txt}</text>`};
-g+=cap("TOWN BALLOON",vert?cT+8:cT,vert?mid:mid+rT+42)+cap("MAIN · SINGLE TRACK",vert?(P.SR[0]+P.IG[0])/2:(P.WYE[0]+m1)/2,vert?mid-150:mid-34)+cap("LOOKOUT BALLOON",vert?cF-40:cF,vert?mid:mid+rF+42);
-box.innerHTML=`<svg viewBox="${vert?-20:-100} -60 ${W+(vert?40:200)} ${H+(vert?160:80)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block">${g}</svg>`;
+g+=cap("TOWN BALLOON",vert?cT+rT+40:cT+rT+10,vert?mid+170:mid+rT+100)+cap("MAIN · SINGLE TRACK",vert?(P.PP[0]+P.IG[0])/2:(P.WYE[0]+m1)/2,vert?mid-150:mid-34)+cap("LOOKOUT LOOP",vert?cF-40:cF,vert?mid:mid+rF+42);
+box.innerHTML=`<svg viewBox="${vert?-20:-100} ${vert?-130:-60} ${W+(vert?40:200)} ${H+(vert?230:80)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block">${g}</svg>`;
 $("mapk").innerHTML=M.tr.map(t=>`<span>${esc(ec(t.t))} · ${esc(t.t)}: ${esc(BI[t.blk].name)} → ${t.lim?"clear to <b>"+esc(BI[t.lim].name)+"</b>"+(S.clr[t.t]?"":" (default)"):"no clearance"}${t.rng.some(b=>M.bad.has(b))||M.bad.has(t.blk)?' <b style="color:#c0261b">CONFLICT</b>':""}</span>`).join(" · ");
 $("mapw").style.display=M.tr.length||DSP?"":"none";
 const sel=$("dtr");const h=Object.keys(S.rep).map(t=>`<option${t===dTrain?" selected":""}>${esc(t)}</option>`).join("");if(sel.dataset.h!==h){sel.innerHTML=h;sel.dataset.h=h}if(!dTrain||!S.rep[dTrain])dTrain=sel.value}
