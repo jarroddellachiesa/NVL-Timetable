@@ -45,7 +45,7 @@ tr.cx td{text-decoration:line-through;opacity:.7}tr.cx td.st{text-decoration:non
 .pn .r{display:flex;gap:.5em;flex-wrap:wrap;align-items:center;margin:.5em 0}.pn button{font-size:.9em}
 #syc{font-size:1.8em;font-weight:900;color:var(--red);letter-spacing:.1em}#syl{font-size:.7em;word-break:break-all;font-style:italic}
 .bg{display:grid;grid-template-columns:repeat(auto-fill,minmax(10em,1fr));gap:.4em;margin:.3em 0 .8em}.bg button{min-height:2.6em;background:#fbf3dd;color:var(--br);border:2px solid var(--br);font-size:.85em}.bg button.sel{background:var(--red);color:#fff;border-color:var(--red)}
-#map .blk{cursor:pointer}#mapk span{white-space:nowrap}
+#map .blk{cursor:pointer}#map{max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}#maph{display:none;font-style:italic;font-size:.75em;opacity:.7;text-align:center}#mapk span{white-space:nowrap}
 #lsw table td{font-size:.95em}
 body.disp .ctl,body.disp .ctl2{display:none}body.disp table{font-size:clamp(16px,2.3vw,34px)}body.disp tr.r{cursor:default}
 
@@ -108,7 +108,7 @@ h1{white-space:nowrap;overflow-wrap:normal;word-break:keep-all}
 <label style="margin-left:auto">Session starts at <input type="time" id="st"></label><label><input type="checkbox" id="wm"> Show clock times</label></div>
 <div class="ctl2"><label>Schedule <select id="pk"></select></label><button id="ad" class="alt">+ ADD TRAIN</button><button id="sa">SAVE AS…</button><button id="cl" style="background:#6b4a2b">CLEAR SCHEDULE</button><button id="sy">SYNC</button><button id="op">OPERATOR</button><button id="dsp">DISPATCHER</button><span id="sn" style="font-style:italic"></span></div>
 <div class="next" id="nx"></div>
-<div id="mapw" style="display:none"><div class="sec">LINE MAP · BLOCKS &amp; CLEARANCES</div><div id="dbar" class="ctl2" style="display:none">Dispatcher: <select id="dtr"></select> then tap its limit block · <button id="ddef">DEFAULT</button><button id="dclr" style="background:#6b4a2b">NO CLEARANCE</button></div><div id="map"></div><div id="mapk" style="font-size:clamp(12px,1.3vw,18px);font-style:italic"></div></div>
+<div id="mapw" style="display:none"><div class="sec">LINE MAP · BLOCKS &amp; CLEARANCES</div><div id="dbar" class="ctl2" style="display:none">Dispatcher: <select id="dtr"></select> then tap its limit block · <button id="ddef">DEFAULT</button><button id="dclr" style="background:#6b4a2b">NO CLEARANCE</button></div><div id="map"></div><div id="maph">◂ swipe the map sideways ▸</div><div id="mapk" style="font-size:clamp(12px,1.3vw,18px);font-style:italic"></div></div>
 <div id="lsw" style="display:none"><div class="sec">LINE STATUS · WHERE’S MY TRAIN</div><table><thead><tr><th>TRAIN</th><th>ENGINE</th><th>LAST LOCATION</th><th>STATE</th><th>REPORTED</th></tr></thead><tbody id="ls"></tbody></table></div>
 <div class="sec">UPCOMING</div><table><thead><tr><th>TIME</th><th>TRAIN</th><th>ENGINE</th><th>FROM</th><th>TO / VIA</th><th>STATUS</th></tr></thead><tbody id="up"></tbody></table>
 <div class="sec" id="dh">DEPARTED / CANCELLED ▾</div><table id="dep"><tbody id="dn"></tbody></table></div>
@@ -126,8 +126,8 @@ h1{white-space:nowrap;overflow-wrap:normal;word-break:keep-all}
 <label>ENGINE<span style="font-weight:normal;font-style:italic;margin-top:.4em">Chosen by the train’s operator</span><select id="f_en" style="display:none"><option value="">—</option></select></label>
 <label>NOTE (optional)<input id="f_no" placeholder="e.g. for Harvest Train"></label>
 <label class="rvl"><input type="checkbox" id="f_rv">REVERSE MOVE ↩<span style="font-weight:normal;font-style:italic;font-size:.85em;flex-basis:100%">Backing (opposing) run. From and To are map stations.</span></label>
-<label>FROM<select id="f_fr" data-cu="f_frc"><option value="Red Rock Junction">Red Rock Junction</option><option value="Bautista">Bautista</option><option value="Steamboat">Steamboat</option><option value="Fort Frontier">Fort Frontier</option><option value="Hobo’s Hideout">Hobo’s Hideout</option><option value="Shady Rest">Shady Rest</option><option value="Pumpkin Patch">Pumpkin Patch</option><option value="Lookout loop">Lookout loop</option><option value="__c">Custom…</option></select><input id="f_frc" class="cu" placeholder="Station"></label>
-<label>TO / VIA<select id="f_to" data-cu="f_toc"><option value="Red Rock Junction">Red Rock Junction</option><option value="Bautista">Bautista</option><option value="Steamboat">Steamboat</option><option value="Fort Frontier">Fort Frontier</option><option value="Hobo’s Hideout">Hobo’s Hideout</option><option value="Shady Rest">Shady Rest</option><option value="Pumpkin Patch">Pumpkin Patch</option><option value="Lookout loop">Lookout loop</option><option value="__c">Custom…</option></select><input id="f_toc" class="cu" placeholder="Station or via"></label>
+<label>FROM<select id="f_fr" data-cu="f_frc"><option value="Red Rock Junction">Red Rock Junction</option><option value="Bautista">Bautista</option><option value="Steamboat">Steamboat</option><option value="Fort Frontier">Fort Frontier</option><option value="Hobo’s Hideout">Hobo’s Hideout</option><option value="Shady Rest">Shady Rest</option><option value="Pumpkin Patch">Pumpkin Patch</option><option value="Firecracker">Firecracker</option><option value="Lookout loop">Lookout loop</option><option value="__c">Custom…</option></select><input id="f_frc" class="cu" placeholder="Station"></label>
+<label>TO / VIA<select id="f_to" data-cu="f_toc"><option value="Red Rock Junction">Red Rock Junction</option><option value="Bautista">Bautista</option><option value="Steamboat">Steamboat</option><option value="Fort Frontier">Fort Frontier</option><option value="Hobo’s Hideout">Hobo’s Hideout</option><option value="Shady Rest">Shady Rest</option><option value="Pumpkin Patch">Pumpkin Patch</option><option value="Firecracker">Firecracker</option><option value="Lookout loop">Lookout loop</option><option value="__c">Custom…</option></select><input id="f_toc" class="cu" placeholder="Station or via"></label>
 </div><div class="bt"><button type="button" id="fc" style="background:#777">CANCEL</button><button type="button" id="fs" class="alt">SAVE TRAIN</button></div></form></div>
 <script>
 const TT1=[{"id": 0, "t": 0, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 1", "hold": ""}, {"id": 1, "t": 60, "train": "Steamboat Train", "eng": "", "frm": "Red Rock Junction", "to": "Steamboat", "hold": ""}, {"id": 2, "t": 180, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch · Run 1", "hold": "", "rev": true}, {"id": 3, "t": 180, "train": "Steamboat Train", "eng": "", "frm": "Curiosity Canyon / Wye", "to": "Hold", "hold": "for Harvest Train"}, {"id": 4, "t": 420, "train": "Harvest Train", "eng": "", "frm": "Pumpkin Patch", "to": "Wye → Shady Rest", "hold": ""}, {"id": 5, "t": 420, "train": "Steamboat Train", "eng": "", "frm": "Wye", "to": "Steamboat (layover)", "hold": ""}, {"id": 6, "t": 480, "train": "Freight Train", "eng": "", "frm": "Red Rock Junction", "to": "Fort Frontier", "hold": ""}, {"id": 7, "t": 540, "train": "Excursion Train", "eng": "", "frm": "Red Rock Junction", "to": "Excursion loop", "hold": ""}, {"id": 8, "t": 600, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 2", "hold": ""}, {"id": 9, "t": 720, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch · Run 2", "hold": "", "rev": true}, {"id": 10, "t": 720, "train": "Excursion & Freight", "eng": "", "frm": "Curiosity Canyon / Wye", "to": "Hold", "hold": "for Harvest Train"}, {"id": 11, "t": 960, "train": "Excursion Train", "eng": "", "frm": "Wye", "to": "Fort Frontier · Hobo’s Hideout", "hold": ""}, {"id": 12, "t": 1020, "train": "Freight Train", "eng": "", "frm": "Fort Frontier", "to": "Red Rock Jct via Hobo’s Hideout", "hold": ""}, {"id": 13, "t": 1140, "train": "Steamboat Train", "eng": "", "frm": "Steamboat", "to": "Fort Frontier · Hobo’s Hideout", "hold": ""}, {"id": 14, "t": 1260, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 3", "hold": "for Steamboat Train (Lookout loop)"}, {"id": 15, "t": 1380, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch · Run 3", "hold": "", "rev": true}, {"id": 16, "t": 1620, "train": "Harvest Train", "eng": "", "frm": "Pumpkin Patch", "to": "Wye → Shady Rest", "hold": ""}, {"id": 17, "t": 1800, "train": "All Trains", "eng": "", "frm": "All stations", "to": "Tie up · Session ends", "hold": ""}],K="nvl-departures-v2",KS="nvl-schedules";
@@ -239,7 +239,7 @@ $("syh").onclick=()=>{join(newCode(),true).then(()=>{$("syl").textContent=locati
 $("syj").onclick=()=>join($("syi").value,false).then(()=>{$("syl").textContent=code?location.href.split("?")[0]+"?join="+code:""});
 $("syo").onclick=async()=>{if(await ask("Stop syncing this screen?"))leave()};
 // operator
-const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","Junction","Lookout Loop","Pumpkin Patch","Indian Gulch","Town","Car Barn","On the main"],STS=["Departed","Arrived","Holding","Reversing","Running late","In the clear"];
+const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","Junction","Lookout Loop","Pumpkin Patch","Firecracker","Indian Gulch","Town","Car Barn","On the main"],STS=["Departed","Arrived","Holding","Reversing","Running late","In the clear"];
 let OP={train:localStorage.getItem("nvl-op-train")||"",who:localStorage.getItem("nvl-op-who")||"",loc:"",st:""};
 const trains=()=>{const m=new Map();for(const r of S.rows)if(!/^all trains$/i.test(r.train)&&!m.has(r.train))m.set(r.train,r.eng);return m};
 const conOf=t=>{const x=S.rep[t];return x&&x.con||""};const ec=t=>{const e=engOf(t),c=conOf(t);return e==="—"?(c||"—"):c?e+" · "+c:e};
@@ -286,8 +286,9 @@ const WYE={id:"WYE",name:"Junction",hold:1,alias:["the wye","wye"]}; // the spru
 const JUNCTION_RULE={at:"WYE",from:"BAU",stretch:["HH","WYE","SR"]}; // junction of the town balloon and the main
 const MAIN=[ // single-track main, listed from the wye outward (toward Lookout Loop); pos = place along the main (0..1)
  {id:"HH",name:"Hobo’s Hideout",stop:1,pos:0},
- {id:"PP",name:"Pumpkin Patch",stop:1,pos:0.42},
- {id:"IG",name:"Indian Gulch",pos:0.7},
+ {id:"FC",name:"Firecracker",stop:1,pos:0.25},
+ {id:"PP",name:"Pumpkin Patch",stop:1,pos:0.5},
+ {id:"IG",name:"Indian Gulch",pos:0.75},
  {id:"CC",name:"Curiosity Canyon",hold:1,pos:1},
 ];
 const FAR_LOOP=[ // Lookout Loop (the far balloon), in direction of travel. track:1 = plain loop track, drawn as the loop itself
@@ -332,9 +333,10 @@ const occ={},cl={};for(const a of tr){(occ[a.blk]=occ[a.blk]||[]).push(a.t);for(
 for(const b of ALLB){const o=(occ[b.id]||[]).length,c=(cl[b.id]||[]).length;if(o+c>1)bad.add(b.id)}return{tr,occ,cl,bad,RS}}
 const lsState=(t,x,M)=>{const a=M.tr.find(o=>o.t===t);if(a&&a.rev)return'<span class="s-REVERSING">↩ REVERSING</span>';if(a&&a.jhold)return'<span class="s-HOLDING">HOLDING AT JUNCTION</span>';if(a&&a.rhold)return'<span class="s-HOLDING">HOLDING · REVERSE MOVE</span>';
  return x?`<span class="s-${x.st==="Holding"?"HOLDING":x.st==="Reversing"?"REVERSING":x.st==="Running late"?"Cancelled":"x"}">${esc((x.st||"").toUpperCase())}</span>`:""};
-function drawMap(){const box=$("map");const vert=(box.clientWidth||window.innerWidth)<620;
+function drawMap(){const box=$("map");const bw=box.clientWidth||window.innerWidth,vert=false,phn=bw<760; // same horizontal map everywhere; on phones it is drawn larger and scrolls sideways inside the card
+const sl0=box.scrollLeft;
 // Geometry in (u = along the line, v = across); X() maps to screen. Loops are rounded rectangles.
-const L=1500,rc=vert?55:42,tA=vert?140:150,tB=vert?175:125,fA=vert?125:125,fB=vert?160:110,cT=tA+40,cF=L-fA-40,P={};
+const L=1800,rc=vert?55:42,tA=vert?140:150,tB=vert?175:125,fA=vert?125:125,fB=vert?160:110,cT=tA+40,cF=L-fA-40,P={};
 const X=([u,v])=>vert?[-v,u]:[L-u,v];
 const sdf=(cx,A,B,u,v)=>{const qx=Math.abs(u-cx)-(A-rc),qy=Math.abs(v)-(B-rc);return Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-rc};
 const onRR=(cx,A,B,ang)=>{let lo=0,hi=A+B;const c=Math.cos(ang),s=Math.sin(ang);for(let i=0;i<32;i++){const m=(lo+hi)/2;sdf(cx,A,B,cx+c*m,s*m)>0?hi=m:lo=m}return[cx+c*lo,s*lo]};
@@ -342,7 +344,7 @@ const nrm=(cx,A,B,[u,v])=>{const e=.5,gx=sdf(cx,A,B,u+e,v)-sdf(cx,A,B,u-e,v),gy=
 const DIR={}; // outward direction (u,v) for each block's label
 const TANG={SR:-0.3,TWN:-0.86,RRJ:0.86,BAU:0.3};TOWN_LOOP.forEach((b,i)=>{const a=(TANG[b.id]!=null?TANG[b.id]:-0.3-(i*1.4/Math.max(1,TOWN_LOOP.length-1)))*Math.PI;P[b.id]=onRR(cT,tA,tB,a);DIR[b.id]=nrm(cT,tA,tB,P[b.id])});
 P.WYE=[cT+tA+85,0];DIR.WYE=[0,-1];
-const m0=P.WYE[0]+150,m1=cF-fA-70;const BELOW=new Set(["CC","IG","PP","HH"]); // main blocks labelled under the track
+const m0=P.WYE[0]+150,m1=cF-fA-70;const BELOW=new Set(["CC","IG","PP","FC","HH"]); // main blocks labelled under the track
 MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,0];DIR[b.id]=BELOW.has(b.id)?[0,1]:[0,-1]});
 const fN=[m1+45,0],fJ=[cF-fA,0],fTop=fJ,fBot=fJ,tTop=[cT+tA,-tB*0.45],tBot=[cT+tA,tB*0.45];
 // Lookout Loop: entered by the upper neck; the LL block starts at the Steamboat turnout on the top edge, Fort Frontier sits on the far (left) side
@@ -384,7 +386,7 @@ for(const t of M.tr.filter(t=>t.rev)){const ids=[t.blk,...t.rng];if(ids.length<2
   if(tot>40)arr+=`<path d="M${z},0L${-z},${-z*.8}L${-z*.4},0L${-z},${z*.8}Z" transform="translate(${cx} ${cy}) rotate(${dg})" fill="#8a2e12"/>`}
  g+=`<polyline points="${pts.map(p=>p.map(n=>n.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="#d9772b" stroke-opacity=".7" stroke-width="${vert?16:13}" stroke-linejoin="round" stroke-linecap="round"/>${arr}`}
 // block nodes on the track
-const R=vert?26:21,nr=vert?12:10;
+const R=phn?24:23,nr=phn?11:11;
 const holdAt=id=>M.tr.some(t=>t.blk===id&&(t.jhold||t.rhold||/^Holding$/.test((S.rep[t.t]||{}).st||"")));
 const NODES=ALLB.filter(b=>!b.track);
 for(const b of NODES){const[x,y]=pt(b.id);const o=M.occ[b.id],c=M.cl[b.id],bd=M.bad.has(b.id),rv=M.RS.has(b.id);const f=bd?"#c0261b":o?"#3b2414":rv?"#d9772b":c?"#e8c46a":"#fbf3dd";
@@ -394,7 +396,7 @@ const cnt={};for(const t of M.tr){const[x,y]=pt(t.blk);const k=cnt[t.blk]=(cnt[t
  gm+=`<g><title>${esc(t.t)} · ${esc(ec(t.t))}${t.rev?" · ↩ reversing":""}</title><circle cx="${mx}" cy="${my}" r="${R}" fill="${t.rev?"#d9772b":"#8a2e12"}" stroke="#fbf3dd" stroke-width="3"/><text x="${mx}" y="${my+R*0.3}" text-anchor="middle" font-size="${lab.length>4?R*0.5:R*0.68}" font-weight="900" fill="#fff">${esc(lab)}</text></g>`}
 for(const b of NODES){const[x,y]=pt(b.id);OBS.push([x,y,nr+3])}
 // pill labels, placed off the track and pushed outward until clear of track, markers and other pills
-const fs=vert?22:18,ph=Math.round(fs*1.75),PL=[];
+const fs=phn?24:21,ph=Math.round(fs*1.75),PL=[];
 const hit=r=>OBS.some(([x,y,rad])=>x>r.x-rad&&x<r.x+r.w+rad&&y>r.y-rad&&y<r.y+r.h+rad)||PL.some(q=>r.x<q.x+q.w+6&&r.x+r.w+6>q.x&&r.y<q.y+q.h+6&&r.y+r.h+6>q.y);
 const sdir=id=>{const p=pt(id),q=X([P[id][0]+DIR[id][0]*10,P[id][1]+DIR[id][1]*10]),l=Math.hypot(q[0]-p[0],q[1]-p[1])||1;return[(q[0]-p[0])/l,(q[1]-p[1])/l]};
 function pill(id,name,p,dirs,center){const w=Math.round(name.length*fs*0.6+26);let r=null;
@@ -413,7 +415,7 @@ const cap=(txt,p,an)=>{const[x,y]=X(p);an=an||(vert&&p[1]>10?"end":"middle");OBS
 g+=cap("TOWN LOOP",[cT,6])+cap("MAIN · SINGLE TRACK",[(P.PP[0]+P.IG[0])/2,vert?-22:-26],vert?"start":"middle");
 // fit the view to everything drawn
 let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const[x,y,r]of OBS){x0=Math.min(x0,x-r);y0=Math.min(y0,y-r);x1=Math.max(x1,x+r);y1=Math.max(y1,y+r)}for(const r of PL){x0=Math.min(x0,r.x);y0=Math.min(y0,r.y);x1=Math.max(x1,r.x+r.w);y1=Math.max(y1,r.y+r.h)}
-const pad=14;box.innerHTML=`<svg viewBox="${x0-pad} ${y0-pad} ${x1-x0+pad*2} ${y1-y0+pad*2}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block;font-family:Georgia,'Times New Roman',serif"><defs>${defs}</defs>${g}${gl}${gn}${gp}${gm}</svg>`;
+const pad=14;box.innerHTML=`<svg viewBox="${x0-pad} ${y0-pad} ${x1-x0+pad*2} ${y1-y0+pad*2}" preserveAspectRatio="xMidYMid meet" style="${phn?`width:${Math.max(bw,1250)}px;max-width:none;`:"width:100%;"}height:auto;display:block;font-family:Georgia,'Times New Roman',serif"><defs>${defs}</defs>${g}${gl}${gn}${gp}${gm}</svg>`;box.scrollLeft=sl0;$("maph").style.display=phn?"block":"none";
 $("mapk").innerHTML=M.tr.map(t=>`<span>${esc(ec(t.t))} · ${esc(t.t)}: ${esc(BI[t.blk].name)} → ${t.rev?`<b style="color:#b0561f">↩ REVERSING</b> to <b>${esc(BI[t.lim].name)}</b> via ${t.rng.slice(0,-1).map(b=>esc(BI[b].name)).join(", ")||"—"}`:t.jhold?"<b>HOLDING at Junction</b> until Hobo’s Hideout–Shady Rest is clear":t.rhold?`<b>HOLDING for reverse move</b>${t.lim&&t.lim!==t.blk?" · clear to <b>"+esc(BI[t.lim].name)+"</b>":""}`:t.lim?"clear to <b>"+esc(BI[t.lim].name)+"</b>"+(S.clr[t.t]?"":" (default)"):"no clearance"}${t.rng.some(b=>M.bad.has(b))||M.bad.has(t.blk)?' <b style="color:#c0261b">CONFLICT</b>':""}</span>`).join(" · ");
 $("mapw").style.display=M.tr.length||DSP?"":"none";
 const sel=$("dtr");const h=Object.keys(S.rep).map(t=>`<option${t===dTrain?" selected":""}>${esc(t)}</option>`).join("");if(sel.dataset.h!==h){sel.innerHTML=h;sel.dataset.h=h}if(!dTrain||!S.rep[dTrain])dTrain=sel.value}
