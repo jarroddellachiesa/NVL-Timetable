@@ -342,12 +342,13 @@ const nrm=(cx,A,B,[u,v])=>{const e=.5,gx=sdf(cx,A,B,u+e,v)-sdf(cx,A,B,u-e,v),gy=
 const DIR={}; // outward direction (u,v) for each block's label
 const TANG={SR:-0.3,TWN:-0.86,RRJ:0.86,BAU:0.3};TOWN_LOOP.forEach((b,i)=>{const a=(TANG[b.id]!=null?TANG[b.id]:-0.3-(i*1.4/Math.max(1,TOWN_LOOP.length-1)))*Math.PI;P[b.id]=onRR(cT,tA,tB,a);DIR[b.id]=nrm(cT,tA,tB,P[b.id])});
 P.WYE=[cT+tA+85,0];DIR.WYE=[0,-1];
-const m0=P.WYE[0]+150,m1=cF-fA-70;MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,0];DIR[b.id]=[0,-1]});
+const m0=P.WYE[0]+150,m1=cF-fA-70;const BELOW=new Set(["CC","IG"]); // main blocks labelled under the track
+MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,0];DIR[b.id]=BELOW.has(b.id)?[0,1]:[0,-1]});
 const fN=[m1+45,0],fJ=[cF-fA,0],fTop=fJ,fBot=fJ,tTop=[cT+tA,-tB*0.45],tBot=[cT+tA,tB*0.45];
 // Lookout Loop: entered by the upper neck; the LL block starts at the Steamboat turnout on the top edge, Fort Frontier sits on the far (left) side
-const stbU=cF-fA*0.5;P.LL=[stbU,-fB];P.FF=onRR(cF,fA,fB,-0.25*Math.PI);DIR.FF=nrm(cF,fA,fB,P.FF);
+const stbU=cF-fA*0.5;const sJ=[cF-fA,-fB*0.5],sX=cF-fA-(vert?34:30);P.LL=sJ.slice();P.FF=onRR(cF,fA,fB,-0.25*Math.PI);DIR.FF=nrm(cF,fA,fB,P.FF);
 for(const b of BRANCHES){if(b.at==="LL"){ // Steamboat: turnout on the loop's top edge (halfway between its middle and the corner nearest the main), siding runs straight up
- P["_j"+b.id]=[stbU,-fB];P[b.id]=[stbU,-fB-(vert?95:80)]}
+ P["_j"+b.id]=sJ.slice();P[b.id]=[sX,-fB-(vert?85:70)];P["_c"+b.id]=[[cF-fA,sJ[1]-34],[sX,sJ[1]-58]]} // turnout off the right side (direction of travel: up), curving out and straight up
  else if(b.loop==="town"){ // Car Barn: off the bottom side of the town loop, between Red Rock and Bautista
  P["_j"+b.id]=[cT-tA*0.15,tB];P[b.id]=[cT-tA*0.15-95,tB+62]}
  else{const[x,y]=P[b.at];P["_j"+b.id]=[x,y];P[b.id]=[x,y+110]}
@@ -360,7 +361,9 @@ const tw=7;
 g+=`<path d="${loopD(cT,tA,tB)}" fill="none" stroke="#3b2414" stroke-width="${tw}"/>`;
 {const o=M.occ.LL,c=M.cl.LL,bd=M.bad.has("LL"),rv=M.RS.has("LL");g+=`<path class="blk" data-b="LL" d="${loopD(cF,fA,fB)}" fill="${o?"rgba(107,74,43,.12)":"transparent"}" stroke="${bd?"#c0261b":rv?"#d9772b":o?"#6b4a2b":c?"#c9a24a":"#3b2414"}" stroke-width="${bd||o||c||rv?12:tw}" style="pointer-events:all"/>`}
 g+=seg(X(tTop),pt("WYE"),tw)+seg(X(tBot),pt("WYE"),tw)+seg(pt("WYE"),X(fN),tw)+seg(X(fN),X(fJ),tw); // one switch at fN: the balloon throat runs to the loop, which leaves and returns through it
-for(const b of BRANCHES)g+=seg(X(P["_j"+b.id]),pt(b.id),6);
+for(const b of BRANCHES){const cv=P["_c"+b.id];if(!cv){g+=seg(X(P["_j"+b.id]),pt(b.id),6);continue}
+ const j=X(P["_j"+b.id]),c=X(cv[0]),e1=X(cv[1]),e=pt(b.id);for(let i=0;i<=12;i++){const t=i/12,x=(1-t)*(1-t)*j[0]+2*(1-t)*t*c[0]+t*t*e1[0],y=(1-t)*(1-t)*j[1]+2*(1-t)*t*c[1]+t*t*e1[1];OBS.push([x,y,6])}
+ g+=`<path d="M${j}Q${c} ${e1}" fill="none" stroke="#3b2414" stroke-width="6" stroke-linecap="round"/>`+seg(e1,e,6)}
 // reverse (opposing) moves: their path in a distinct color with arrows in the direction of the backing move
 let defs=`<marker id="rva" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="2.2" markerHeight="2.2" orient="auto"><path d="M0,0L10,5L0,10z" fill="#8a2e12"/></marker>`;
 // points between two adjacent blocks that follow the drawn track (loop arcs and wye necks)
@@ -372,7 +375,7 @@ const via=(a,b)=>{if(TS.has(a)&&TS.has(b))return arc(cT,tA,tB,ang(cT,P[a]),ang(c
  // Lookout Loop: throat from the single switch (fN) to fJ; loop runs up and over the top (LL, Steamboat turnout), past Fort Frontier (top-left), down and round the bottom back to fJ
  if(k==="CC,LL")return a==="CC"?[fN,fJ,...arc(cF,fA,fB,Math.PI,ang(cF,P.LL),1)]:[...arc(cF,fA,fB,ang(cF,P.LL),Math.PI,-1),fJ,fN];
  if(k==="CC,FF")return a==="CC"?[fN,fJ,...arc(cF,fA,fB,Math.PI,ang(cF,P.FF),-1)]:[...arc(cF,fA,fB,ang(cF,P.FF),Math.PI,1),fJ,fN];
- if(k==="FF,LL")return arc(cF,fA,fB,ang(cF,P[a]),ang(cF,P[b]));const br=BRANCHES.find(x=>(x.id===a||x.id===b));if(br)return a===br.id?[P["_j"+br.id]]:[P["_j"+br.id]];return[]};
+ if(k==="FF,LL")return arc(cF,fA,fB,ang(cF,P[a]),ang(cF,P[b]));const br=BRANCHES.find(x=>(x.id===a||x.id===b));if(br){const cv=P["_c"+br.id]||[];const o=[P["_j"+br.id],...cv];return a===br.id?o.reverse():o}return[]};
 for(const t of M.tr.filter(t=>t.rev)){const ids=[t.blk,...t.rng];if(ids.length<2)continue;const pts=[pt(ids[0])];let arr="";
  for(let i=1;i<ids.length;i++){const sp=[pts[pts.length-1],...via(ids[i-1],ids[i]).map(X),pt(ids[i])];pts.push(...sp.slice(1));
   // one arrowhead at the middle of each block-to-block span, pointing the way the reverse move runs
@@ -395,7 +398,9 @@ const fs=vert?22:18,ph=Math.round(fs*1.75),PL=[];
 const hit=r=>OBS.some(([x,y,rad])=>x>r.x-rad&&x<r.x+r.w+rad&&y>r.y-rad&&y<r.y+r.h+rad)||PL.some(q=>r.x<q.x+q.w+6&&r.x+r.w+6>q.x&&r.y<q.y+q.h+6&&r.y+r.h+6>q.y);
 const sdir=id=>{const p=pt(id),q=X([P[id][0]+DIR[id][0]*10,P[id][1]+DIR[id][1]*10]),l=Math.hypot(q[0]-p[0],q[1]-p[1])||1;return[(q[0]-p[0])/l,(q[1]-p[1])/l]};
 function pill(id,name,p,dirs,center){const w=Math.round(name.length*fs*0.6+26);let r=null;
- for(const d of dirs){let dist=center?0:Math.abs(d[0])*w/2+Math.abs(d[1])*ph/2+nr+6;for(let i=0;i<70&&!r;i++){const cx=p[0]+d[0]*dist,cy=p[1]+d[1]*dist,c={x:cx-w/2,y:cy-ph/2,w,h:ph};if(!hit(c))r=c;dist+=5}if(r)break}
+ // try the preferred direction first, but take whichever direction clears soonest (stay close to the block)
+ const D0=dirs.map(d=>center?0:Math.abs(d[0])*w/2+Math.abs(d[1])*ph/2+nr+6);
+ for(let i=0;i<70&&!r;i++)for(let k=0;k<dirs.length&&!r;k++){if(k===dirs.length-1&&!center&&i<20)continue;const d=dirs[k],dist=D0[k]+i*5*(k?1.25:1),cx=p[0]+d[0]*dist,cy=p[1]+d[1]*dist,c={x:cx-w/2,y:cy-ph/2,w,h:ph};if(!hit(c))r=c}
  if(!r){const d=dirs[0],dist=Math.abs(d[0])*w/2+Math.abs(d[1])*ph/2+nr+6;r={x:p[0]+d[0]*dist-w/2,y:p[1]+d[1]*dist-ph/2,w,h:ph}}
  PL.push(r);const o=M.occ[id],bd=M.bad.has(id)||holdAt(id),c=M.cl[id],rv=M.RS.has(id);
  const fill=bd?"#c0261b":o?"#e8c46a":"#fbf3dd",tx=bd?"#fff":"#3b2414",st=bd?"#7d150d":rv?"#d9772b":c?"#c9a24a":"#3b2414";
@@ -403,9 +408,9 @@ function pill(id,name,p,dirs,center){const w=Math.round(name.length*fs*0.6+26);l
  gp+=`<g class="blk" data-b="${id}"><rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${ph/2}" fill="${fill}" stroke="${st}" stroke-width="${c||rv||o||bd?3.5:2.2}"/><text x="${r.x+r.w/2}" y="${r.y+r.h/2+fs*0.35}" text-anchor="middle" font-size="${fs}" font-weight="bold" fill="${tx}">${esc(name)}</text></g>`}
 const rot=([a,b],s)=>[a*Math.cos(s)-b*Math.sin(s),a*Math.sin(s)+b*Math.cos(s)];
 for(const b of NODES){const d=sdir(b.id);pill(b.id,b.name,pt(b.id),[d,rot(d,0.5),rot(d,-0.5),rot(d,1),rot(d,-1),[-d[0],-d[1]]])}
-{const c=X([cF,0]);pill("LL","Lookout Loop",c,[[0,1],[0,-1],[1,0]],true)}
+{const c=X(vert?[cF+fA+ph/2+16,0]:[cF,fB+ph/2+16]);pill("LL","Lookout Loop",c,[[0,1],[1,0],[-1,0]],true)} // name label under the loop
 const cap=(txt,p,an)=>{const[x,y]=X(p);an=an||(vert&&p[1]>10?"end":"middle");OBS.push([x,y,10]);return`<text x="${x}" y="${y}" text-anchor="${an}" font-size="${vert?20:15}" font-style="italic" fill="#6b4a2b" letter-spacing="2">${txt}</text>`};
-g+=cap("TOWN LOOP",[cT,6])+cap("MAIN · SINGLE TRACK",[(m0+m1)/2,vert?22:44]);
+g+=cap("TOWN LOOP",[cT,6])+cap("MAIN · SINGLE TRACK",[(P.HH[0]+P.PP[0])/2,vert?22:44]);
 // fit the view to everything drawn
 let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const[x,y,r]of OBS){x0=Math.min(x0,x-r);y0=Math.min(y0,y-r);x1=Math.max(x1,x+r);y1=Math.max(y1,y+r)}for(const r of PL){x0=Math.min(x0,r.x);y0=Math.min(y0,r.y);x1=Math.max(x1,r.x+r.w);y1=Math.max(y1,r.y+r.h)}
 const pad=14;box.innerHTML=`<svg viewBox="${x0-pad} ${y0-pad} ${x1-x0+pad*2} ${y1-y0+pad*2}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block;font-family:Georgia,'Times New Roman',serif"><defs>${defs}</defs>${g}${gl}${gn}${gp}${gm}</svg>`;
