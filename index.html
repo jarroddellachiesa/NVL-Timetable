@@ -233,14 +233,14 @@ $("syh").onclick=()=>{join(newCode(),true).then(()=>{$("syl").textContent=locati
 $("syj").onclick=()=>join($("syi").value,false).then(()=>{$("syl").textContent=code?location.href.split("?")[0]+"?join="+code:""});
 $("syo").onclick=async()=>{if(await ask("Stop syncing this screen?"))leave()};
 // operator
-const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","The Wye","Lookout Loop","Pumpkin Patch","Indian Gulch","Town","Yard","Car Barn","On the main"],STS=["Departed","Arrived","Holding","Running late","In the clear"];
+const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","Junction","Lookout Loop","Pumpkin Patch","Indian Gulch","Town","Yard","Car Barn","On the main"],STS=["Departed","Arrived","Holding","Running late","In the clear"];
 let OP={train:localStorage.getItem("nvl-op-train")||"",who:localStorage.getItem("nvl-op-who")||"",loc:"",st:""};
 const trains=()=>{const m=new Map();for(const r of S.rows)if(!/^all trains$/i.test(r.train)&&!m.has(r.train))m.set(r.train,r.eng);return m};
 const conOf=t=>{const x=S.rep[t];return x&&x.con||""};const ec=t=>{const e=engOf(t),c=conOf(t);return e==="—"?(c||"—"):c?e+" · "+c:e};
 const engOf=t=>{const one=n=>{const x=S.rep[n]||S.rep[n+" Train"];return x&&x.eng||""};const parts=t.split(/ & /);const e=(parts.length>1?parts.map(one):[one(t)]).filter(Boolean);return e.join("/")||"—"};
 function ago(ts){const s=Math.max(0,Math.round((now()-ts)/1000));return s<60?s+"s ago":Math.floor(s/60)+"m "+String(s%60).padStart(2,"0")+"s ago"}
-function drawLS(){const R=Object.entries(S.rep).sort((a,b)=>b[1].ts-a[1].ts);$("lsw").style.display=R.length?"":"none";
-$("ls").innerHTML=R.map(([t,x])=>`<tr><td class="n">${esc(t)}</td><td>${esc(ec(t))}</td><td>${esc(x.loc||"—")}</td><td class="st"><span class="s-${x.st==="Holding"?"HOLDING":x.st==="Running late"?"Cancelled":"x"}">${esc((x.st||"").toUpperCase())}</span></td><td>${ago(x.ts)}${x.who?" · "+esc(x.who):""}</td></tr>`).join("");
+function drawLS(){const JH=new Set(mapState().tr.filter(a=>a.jhold).map(a=>a.t));const R=Object.entries(S.rep).sort((a,b)=>b[1].ts-a[1].ts);$("lsw").style.display=R.length?"":"none";
+$("ls").innerHTML=R.map(([t,x])=>`<tr><td class="n">${esc(t)}</td><td>${esc(ec(t))}</td><td>${esc(x.loc||"—")}</td><td class="st">${JH.has(t)?'<span class="s-HOLDING">HOLDING AT JUNCTION</span>':`<span class="s-${x.st==="Holding"?"HOLDING":x.st==="Running late"?"Cancelled":"x"}">${esc((x.st||"").toUpperCase())}</span>`}</td><td>${ago(x.ts)}${x.who?" · "+esc(x.who):""}</td></tr>`).join("");
 if($("opv").classList.contains("on"))drawOp()}
 function drawOp(){const ts=trains(),sel=$("opt");const h=[...ts.keys()].map(t=>`<option${t===OP.train?" selected":""}>${esc(t)}</option>`).join("");if(sel.dataset.h!==h){sel.innerHTML=h;sel.dataset.h=h}if(!ts.has(OP.train)&&ts.size){OP.train=[...ts.keys()][0];sel.value=OP.train}
 const c=S.rep[OP.train];const ce=c&&c.eng;$("ope").textContent="";$("open").textContent=ce?"· "+(ROSTER.find(x=>x[0]===ce)||[ce,ce])[1]:"· pick yours";$("opce").style.display=ce&&!OP.chg?"":"none";$("opeg").style.display=ce&&!OP.chg?"none":"";for(const b of document.querySelectorAll("#opeg button"))b.classList.toggle("sel",b.dataset.e===ce);const cc=c&&c.con;$("opcn").textContent=cc?"· "+cc:"· pick yours";$("opcc").style.display=cc&&!OP.cchg?"":"none";$("opcg").style.display=cc&&!OP.cchg?"none":"";for(const b of document.querySelectorAll("#opcg button"))b.classList.toggle("sel",b.dataset.c===cc);$("opl").innerHTML=c?`Last report: <b>${esc(c.loc)}</b> · <b>${esc(c.st)}</b> · ${ago(c.ts)}${c.who?" by "+esc(c.who):""}`:"No report yet.";
@@ -275,7 +275,9 @@ const TOWN_LOOP=[ // town balloon, in direction of travel starting from the wye 
  {id:"RRJ",name:"Red Rock Junction",stop:1},
  {id:"BAU",name:"Bautista",stop:1},
 ];
-const WYE={id:"WYE",name:"The Wye",hold:1}; // junction of the town balloon and the main
+const WYE={id:"WYE",name:"Junction",hold:1,alias:["the wye","wye"]}; // the sprung wye, just before Shady Rest
+// Rule: a train at Junction coming from Bautista holds until Hobo’s Hideout–Junction–Shady Rest is clear.
+const JUNCTION_RULE={at:"WYE",from:"BAU",stretch:["HH","WYE","SR"]}; // junction of the town balloon and the main
 const MAIN=[ // single-track main, listed from the wye outward (toward Lookout Loop); pos = place along the main (0..1)
  {id:"HH",name:"Hobo’s Hideout",stop:1,pos:0},
  {id:"PP",name:"Pumpkin Patch",stop:1,pos:0.42},
@@ -291,20 +293,24 @@ const BRANCHES=[{id:"STB",name:"Steamboat",at:"LL",kind:"siding",stop:1},{id:"CB
 // Harvest Train backing move: Red Rock Junction straight to the wye, then out the main to the Pumpkin Patch.
 const LEGS=[{from:"RRJ",to:"PP",via:["WYE","HH","PP"],label:"Harvest direct route (backing)"}];
 // Full trip in order of travel (main blocks are passed twice: outbound and returning).
-const ROUTE=[...TOWN_LOOP.map(b=>b.id),WYE.id,...MAIN.map(b=>b.id),...FAR_LOOP.map(b=>b.id),...MAIN.map(b=>b.id).reverse()];
+const ROUTE=[...TOWN_LOOP.map(b=>b.id),WYE.id,...MAIN.map(b=>b.id),...FAR_LOOP.map(b=>b.id),...MAIN.map(b=>b.id).reverse(),WYE.id];
 const BLOCKS=[...TOWN_LOOP,WYE,...MAIN,...FAR_LOOP];
 const ALLB=[...BLOCKS,...BRANCHES],BI=Object.fromEntries(ALLB.map(b=>[b.id,b]));
 function routeIdx(id,prev){if(prev!=null&&ROUTE[prev]===id)return prev;const n=ROUTE.length;if(prev!=null)for(let k=1;k<=n;k++){const j=(prev+k)%n;if(ROUTE[j]===id)return j}const j=ROUTE.indexOf(id);return j<0?null:j}
 const nextRing=(id,ri)=>{const b=BI[id];if(b&&b.at)return b.at;const i=routeIdx(id,ri);return ROUTE[((i==null?0:i)+1)%ROUTE.length]};
-function locBlk(loc){const n=(loc||"").toLowerCase().replace(/^the /,"");const b=ALLB.find(x=>x.name.toLowerCase().replace(/^the /,"")===n);return b?b.id:null}
+function locBlk(loc){const n=(loc||"").toLowerCase().replace(/^the /,"");const b=ALLB.find(x=>x.name.toLowerCase().replace(/^the /,"")===n||(x.alias||[]).includes(n)||(x.alias||[]).includes("the "+n));return b?b.id:null}
 function path(from,to,ri){if(!from||!to||from===to)return[];const lg=LEGS.find(l=>l.from===from&&l.to===to);if(lg)return lg.via.slice();
 const out=[];const tb=BI[to];let i=BI[from]&&BI[from].at?routeIdx(BI[from].at,null):routeIdx(from,ri);if(i==null)return[];
 for(let k=0;k<ROUTE.length;k++){i=(i+1)%ROUTE.length;const c=ROUTE[i];if(tb&&tb.at&&c===tb.at){out.push(c,to);return out}out.push(c);if(c===to)return out}return out}
 function defLimit(train,blk,ri){if(!blk)return null;if(/harvest/i.test(train)&&blk==="RRJ")return"PP";let i=BI[blk]&&BI[blk].at?routeIdx(BI[blk].at,null):routeIdx(blk,ri);if(i==null)return null;
 for(let k=0;k<ROUTE.length;k++){i=(i+1)%ROUTE.length;const b=BI[ROUTE[i]];if(b.stop||b.hold)return b.id}return null}
 S.clr=S.clr||{};let DSP=false,dTrain="";
-function mapState(){const tr=[],occ={},cl={};for(const[t,x]of Object.entries(S.rep)){const blk=x.blk||locBlk(x.loc);if(!blk||!BI[blk])continue;const c=S.clr[t];const lim=c&&c.limit!==undefined?c.limit:defLimit(t,blk,x.ri);const rng=lim?path(blk,lim,x.ri):[];tr.push({t,blk,lim,rng});(occ[blk]=occ[blk]||[]).push(t);for(const b of rng)(cl[b]=cl[b]||[]).push(t)}
-const bad=new Set();for(const b of ALLB){const o=(occ[b.id]||[]).length,c=(cl[b.id]||[]).length;if(o+c>1)bad.add(b.id)}return{tr,occ,cl,bad}}
+function mapState(){const tr=[];for(const[t,x]of Object.entries(S.rep)){const blk=x.blk||locBlk(x.loc);if(!blk||!BI[blk])continue;const c=S.clr[t];const lim=c&&c.limit!==undefined?c.limit:defLimit(t,blk,x.ri);const rng=lim?path(blk,lim,x.ri):[];tr.push({t,blk,lim,rng,ri:x.ri})}
+const J=JUNCTION_RULE,jFirst=ROUTE.indexOf(J.at),bad=new Set();
+for(const a of tr){if(a.blk!==J.at)continue;const ri=a.ri!=null&&ROUTE[a.ri]===J.at?a.ri:jFirst;if(ri!==jFirst)continue; // only trains that came from Bautista
+ const busy=tr.some(o=>o!==a&&(J.stretch.includes(o.blk)||o.rng.some(b=>J.stretch.includes(b))));if(busy){a.jhold=true;a.lim=J.at;a.rng=[];bad.add(J.at)}}
+const occ={},cl={};for(const a of tr){(occ[a.blk]=occ[a.blk]||[]).push(a.t);for(const b of a.rng)(cl[b]=cl[b]||[]).push(a.t)}
+for(const b of ALLB){const o=(occ[b.id]||[]).length,c=(cl[b.id]||[]).length;if(o+c>1)bad.add(b.id)}return{tr,occ,cl,bad}}
 function drawMap(){const box=$("map");const vert=(box.clientWidth||window.innerWidth)<620;
 // layout in (u = along the line, v = across) then map to x,y
 const L=1500,mid=vert?310:190,Hh=mid*2,rT=vert?125:150,rF=125,cT=rT+30,cF=L-rF-30,P={},sv=vert?1.55:0.92;
@@ -335,7 +341,7 @@ g+=`<g><title>${esc(t.t)} · ${esc(ec(t.t))}</title><circle cx="${mx}" cy="${my}
 const cap=(txt,u,v)=>{const[x,y]=X([u,v]);return`<text x="${x}" y="${y}" text-anchor="middle" font-size="${vert?22:16}" font-style="italic" fill="#6b4a2b" letter-spacing="2">${txt}</text>`};
 g+=cap("TOWN BALLOON",vert?cT+rT+40:cT+rT+10,vert?mid+170:mid+rT+100)+cap("MAIN · SINGLE TRACK",vert?(P.PP[0]+P.IG[0])/2:(P.WYE[0]+m1)/2,vert?mid-150:mid-34)+cap("LOOKOUT LOOP",vert?cF-40:cF,vert?mid:mid+rF+42);
 box.innerHTML=`<svg viewBox="${vert?-20:-100} ${vert?-130:-60} ${W+(vert?40:200)} ${H+(vert?230:80)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block">${g}</svg>`;
-$("mapk").innerHTML=M.tr.map(t=>`<span>${esc(ec(t.t))} · ${esc(t.t)}: ${esc(BI[t.blk].name)} → ${t.lim?"clear to <b>"+esc(BI[t.lim].name)+"</b>"+(S.clr[t.t]?"":" (default)"):"no clearance"}${t.rng.some(b=>M.bad.has(b))||M.bad.has(t.blk)?' <b style="color:#c0261b">CONFLICT</b>':""}</span>`).join(" · ");
+$("mapk").innerHTML=M.tr.map(t=>`<span>${esc(ec(t.t))} · ${esc(t.t)}: ${esc(BI[t.blk].name)} → ${t.jhold?"<b>HOLDING at Junction</b> until Hobo’s Hideout–Shady Rest is clear":t.lim?"clear to <b>"+esc(BI[t.lim].name)+"</b>"+(S.clr[t.t]?"":" (default)"):"no clearance"}${t.rng.some(b=>M.bad.has(b))||M.bad.has(t.blk)?' <b style="color:#c0261b">CONFLICT</b>':""}</span>`).join(" · ");
 $("mapw").style.display=M.tr.length||DSP?"":"none";
 const sel=$("dtr");const h=Object.keys(S.rep).map(t=>`<option${t===dTrain?" selected":""}>${esc(t)}</option>`).join("");if(sel.dataset.h!==h){sel.innerHTML=h;sel.dataset.h=h}if(!dTrain||!S.rep[dTrain])dTrain=sel.value}
 $("map").onclick=e=>{if(!DSP||document.body.classList.contains("disp"))return;const g=e.target.closest(".blk");if(!g||!dTrain)return;setClr(dTrain,g.dataset.b)};
