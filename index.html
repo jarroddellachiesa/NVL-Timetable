@@ -256,52 +256,76 @@ $("opg").innerHTML=LOCS.map(l=>`<button data-l="${l}">${l}</button>`).join("");$
 $("opg").onclick=e=>{const b=e.target.closest("button");if(b){OP.loc=b.dataset.l;drawOp()}};$("ops").onclick=e=>{const b=e.target.closest("button");if(b){OP.st=b.dataset.s;drawOp()}};
 $("opt").onchange=e=>{OP.train=e.target.value;OP.loc=OP.st="";OP.chg=false;OP.cchg=false;$("opwarn").textContent="";localStorage.setItem("nvl-op-train",OP.train);drawOp()};
 $("opw").value=OP.who;$("opw").onchange=e=>{OP.who=e.target.value.trim();localStorage.setItem("nvl-op-who",OP.who)};
-function report(train,loc,st,who,eng,con){const prev=S.rep[train]||{};const r={loc:loc||prev.loc||"",st:st||prev.st||"",who:who||prev.who||"",eng:eng||prev.eng||"",con:con||prev.con||"",ts:now()};r.blk=loc?(loc==="On the main"?(prev.blk?nextRing(prev.blk):"RRJ"):locBlk(loc)):prev.blk;S.rep[train]=r;applying=true;sv();applying=false;post({n:"nvl",k:"rep",from:ME,train,r})}
+function report(train,loc,st,who,eng,con){const prev=S.rep[train]||{};const r={loc:loc||prev.loc||"",st:st||prev.st||"",who:who||prev.who||"",eng:eng||prev.eng||"",con:con||prev.con||"",ts:now()};r.blk=loc?(loc==="On the main"?(prev.blk?nextRing(prev.blk,prev.ri):"RRJ"):locBlk(loc)):prev.blk;r.ri=r.blk&&BI[r.blk]&&!BI[r.blk].at?routeIdx(r.blk,prev.ri):prev.ri;S.rep[train]=r;applying=true;sv();applying=false;post({n:"nvl",k:"rep",from:ME,train,r})}
 $("opr").onclick=async()=>{if(!OP.train)return;if(!(S.rep[OP.train]&&S.rep[OP.train].eng)){await tell("Pick your engine first.");return}if(!OP.loc&&!OP.st){await tell("Pick a location or a state.");return}report(OP.train,OP.loc,OP.st,OP.who);OP.loc=OP.st="";drawOp();$("opk").textContent="Sent ✓";setTimeout(()=>$("opk").textContent="",1500)};
 $("op").onclick=()=>{$("opv").classList.add("on");drawOp()};$("opc").onclick=()=>$("opv").classList.remove("on");
 const draw0=draw;draw=()=>{draw0();drawLS()};
 
-// ---- LINE MAP (edit these arrays to retune the schematic) ----
-// Main line blocks in clockwise order out of Red Rock Junction. stop: station, hold: hold point.
-const BLOCKS=[
+// ---- LINE MAP: dogbone (one main between two balloon loops). Edit these arrays to retune. ----
+// Each block: id, name, stop (station) / hold (hold point). Order = direction of travel.
+const TOWN_LOOP=[ // west balloon, run clockwise through town; the sprung wye sends trains this way
  {id:"RRJ",name:"Red Rock Junction",stop:1},
  {id:"CC",name:"Curiosity Canyon",hold:1},
  {id:"BAU",name:"Bautista",stop:1},
- {id:"WYE",name:"The Wye",hold:1},
+];
+const WYE={id:"WYE",name:"The Wye",hold:1}; // junction of the town balloon and the main
+const MAIN=[ // single-track main, listed from the wye outward
  {id:"SR",name:"Shady Rest",stop:1},
  {id:"IG",name:"Indian Gulch"},
- {id:"STB",name:"Steamboat",stop:1},
- {id:"FF",name:"Fort Frontier",stop:1},
  {id:"HH",name:"Hobo’s Hideout",stop:1},
 ];
-// Blocks off the main: at = main block they connect to.
-const BRANCHES=[
- {id:"LL",name:"Lookout loop",at:"STB",kind:"balloon",hold:1},
- {id:"PP",name:"Pumpkin Patch",at:"IG",kind:"spur",stop:1},
+const FAR_LOOP=[ // east balloon (Lookout loop), entered and left at the end of the main
+ {id:"STB",name:"Steamboat",stop:1},
+ {id:"LL",name:"Lookout loop",hold:1},
+ {id:"FF",name:"Fort Frontier",stop:1},
 ];
-// Direct legs (drawn dashed): the Harvest Train's backing route.
-const LEGS=[{from:"RRJ",to:"PP",label:"Harvest direct route"}];
+const BRANCHES=[{id:"PP",name:"Pumpkin Patch",at:"IG",kind:"spur",stop:1}];
+// Harvest Train backing move: Red Rock Junction straight to the wye, then out the main to the Pumpkin Patch.
+const LEGS=[{from:"RRJ",to:"PP",via:["WYE","SR","IG","PP"],label:"Harvest direct route (backing)"}];
+// Full trip in order of travel (main blocks are passed twice: outbound and returning).
+const ROUTE=[...TOWN_LOOP.map(b=>b.id),WYE.id,...MAIN.map(b=>b.id),...FAR_LOOP.map(b=>b.id),...MAIN.map(b=>b.id).reverse()];
+const BLOCKS=[...TOWN_LOOP,WYE,...MAIN,...FAR_LOOP];
 const ALLB=[...BLOCKS,...BRANCHES],BI=Object.fromEntries(ALLB.map(b=>[b.id,b]));
-const ringIx=id=>BLOCKS.findIndex(b=>b.id===id);
-const nextRing=id=>{const b=BI[id];const i=ringIx(b&&b.at?b.at:id);return BLOCKS[(i+1)%BLOCKS.length].id};
+function routeIdx(id,prev){if(prev!=null&&ROUTE[prev]===id)return prev;const n=ROUTE.length;if(prev!=null)for(let k=1;k<=n;k++){const j=(prev+k)%n;if(ROUTE[j]===id)return j}const j=ROUTE.indexOf(id);return j<0?null:j}
+const nextRing=(id,ri)=>{const b=BI[id];if(b&&b.at)return b.at;const i=routeIdx(id,ri);return ROUTE[((i==null?0:i)+1)%ROUTE.length]};
 function locBlk(loc){const n=(loc||"").toLowerCase().replace(/^the /,"");const b=ALLB.find(x=>x.name.toLowerCase().replace(/^the /,"")===n);return b?b.id:null}
-function path(from,to){if(!from||!to||from===to)return[];if(LEGS.some(l=>l.from===from&&l.to===to))return[to];
-const out=[];let c=from;for(let k=0;k<BLOCKS.length+2;k++){const tb=BI[to];if(tb&&tb.at&&c===tb.at){out.push(to);return out}c=nextRing(c);out.push(c);if(c===to)return out}return out}
-function defLimit(train,blk){if(!blk)return null;if(/harvest/i.test(train)&&blk==="RRJ")return"PP";let c=blk;for(let k=0;k<BLOCKS.length;k++){c=nextRing(c);const b=BI[c];if(b.stop||b.hold)return c}return null}
+function path(from,to,ri){if(!from||!to||from===to)return[];const lg=LEGS.find(l=>l.from===from&&l.to===to);if(lg)return lg.via.slice();
+const out=[];const tb=BI[to];let i=BI[from]&&BI[from].at?routeIdx(BI[from].at,null):routeIdx(from,ri);if(i==null)return[];
+for(let k=0;k<ROUTE.length;k++){i=(i+1)%ROUTE.length;const c=ROUTE[i];if(tb&&tb.at&&c===tb.at){out.push(c,to);return out}out.push(c);if(c===to)return out}return out}
+function defLimit(train,blk,ri){if(!blk)return null;if(/harvest/i.test(train)&&blk==="RRJ")return"PP";let i=BI[blk]&&BI[blk].at?routeIdx(BI[blk].at,null):routeIdx(blk,ri);if(i==null)return null;
+for(let k=0;k<ROUTE.length;k++){i=(i+1)%ROUTE.length;const b=BI[ROUTE[i]];if(b.stop||b.hold)return b.id}return null}
 S.clr=S.clr||{};let DSP=false,dTrain="";
-function mapState(){const tr=[],occ={},cl={};for(const[t,x]of Object.entries(S.rep)){const blk=x.blk||locBlk(x.loc);if(!blk)continue;const c=S.clr[t];const lim=c&&c.limit!==undefined?c.limit:defLimit(t,blk);const rng=lim?path(blk,lim):[];tr.push({t,blk,lim,rng});(occ[blk]=occ[blk]||[]).push(t);for(const b of rng)(cl[b]=cl[b]||[]).push(t)}
+function mapState(){const tr=[],occ={},cl={};for(const[t,x]of Object.entries(S.rep)){const blk=x.blk||locBlk(x.loc);if(!blk||!BI[blk])continue;const c=S.clr[t];const lim=c&&c.limit!==undefined?c.limit:defLimit(t,blk,x.ri);const rng=lim?path(blk,lim,x.ri):[];tr.push({t,blk,lim,rng});(occ[blk]=occ[blk]||[]).push(t);for(const b of rng)(cl[b]=cl[b]||[]).push(t)}
 const bad=new Set();for(const b of ALLB){const o=(occ[b.id]||[]).length,c=(cl[b.id]||[]).length;if(o+c>1)bad.add(b.id)}return{tr,occ,cl,bad}}
-function drawMap(){const W=1200,H=420,cx=560,cy=180,rx=400,ry=115,P={},n=BLOCKS.length;
-BLOCKS.forEach((b,i)=>{const a=Math.PI+2*Math.PI*i/n;P[b.id]=[cx+rx*Math.cos(a),cy+ry*Math.sin(a)]});
-for(const b of BRANCHES){const[x,y]=P[b.at];const dx=x-cx,dy=y-cy,l=Math.hypot(dx,dy)||1;P[b.id]=[x+dx/l*(b.kind==="balloon"?150:170),y+dy/l*(b.kind==="balloon"?140:40)]}
-const M=mapState();let g=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#3b2414" stroke-width="7"/>`;
-for(const b of BRANCHES){const[a1,a2]=P[b.at],[x,y]=P[b.id];g+=`<line x1="${a1}" y1="${a2}" x2="${x}" y2="${y}" stroke="#3b2414" stroke-width="6"/>`;if(b.kind==="balloon")g+=`<ellipse cx="${x}" cy="${y}" rx="90" ry="34" fill="none" stroke="#3b2414" stroke-width="6"/>`}
-for(const l of LEGS){const[a,b]=P[l.from],[c,d]=P[l.to];g+=`<path d="M${a},${b} Q${(a+c)/2},${H-5} ${c},${d}" fill="none" stroke="#3b2414" stroke-width="4" stroke-dasharray="12 8"/><text x="${(a+c)/2}" y="${H-28}" text-anchor="middle" font-style="italic" font-size="17" fill="#3b2414">${l.label}</text>`}
-for(const b of ALLB){const[x,y]=P[b.id];const o=M.occ[b.id],c=M.cl[b.id],bd=M.bad.has(b.id);const fill=o?"#6b4a2b":c?"#e8c46a":"#fbf3dd",st=bd?"#c0261b":"#3b2414";
-g+=`<g class="blk" data-b="${b.id}"><rect x="${x-62}" y="${y-19}" width="124" height="38" rx="8" fill="${fill}" stroke="${st}" stroke-width="${bd?6:3}"/><text x="${x}" y="${y+6}" text-anchor="middle" font-size="${b.name.length>13?13:16}" font-weight="bold" fill="${o?"#fbf3dd":"#3b2414"}">${esc(b.name)}</text></g>`}
-const cnt={};for(const t of M.tr){const[x,y]=P[t.blk];const k=cnt[t.blk]=(cnt[t.blk]||0)+1;const e=engOf(t.t).split("/")[0];const lab=e!=="—"?e:t.t.slice(0,3).toUpperCase();
-g+=`<g><title>${esc(t.t)} · ${esc(ec(t.t))}</title><circle cx="${x+(k-1)*46-0}" cy="${y-42}" r="22" fill="#8a2e12" stroke="#fbf3dd" stroke-width="3"/><text x="${x+(k-1)*46}" y="${y-36}" text-anchor="middle" font-size="${lab.length>4?11:15}" font-weight="900" fill="#fff">${esc(lab)}</text></g>`}
-$("map").innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
+function drawMap(){const box=$("map");const vert=(box.clientWidth||window.innerWidth)<620;
+// layout in (u = along the line, v = across) then map to x,y
+const L=1200,mid=vert?310:190,Hh=mid*2,rT=125,rF=125,cT=rT+30,cF=L-rF-30,P={},sv=vert?1.55:0.92;
+const onCircle=(cx,r,list,a0,a1)=>list.forEach((b,i)=>{const a=a0+(a1-a0)*(i+1)/(list.length+1);P[b.id]=[cx+r*Math.cos(a),mid+r*Math.sin(a)*sv]});
+onCircle(cT,rT,TOWN_LOOP,-Math.PI*0.25,-Math.PI*1.75); // around the west balloon, away from the wye
+P.WYE=[cT+rT+70,mid];
+const m0=P.WYE[0]+150,m1=cF-rF-60;MAIN.forEach((b,i)=>{P[b.id]=[m0+(m1-m0)*i/Math.max(1,MAIN.length-1),mid]});
+onCircle(cF,rF,FAR_LOOP,-Math.PI*0.75,Math.PI*0.75);
+for(const b of BRANCHES){const[x,y]=P[b.at];P[b.id]=[x,y+(b.kind==="spur"?(vert?215:120):0)]}
+const W=vert?Hh:L,H=vert?L:Hh+60,X=([u,v])=>vert?[v,u]:[u,v];
+const pt=id=>X(P[id]);const M=mapState();let g="";
+const line=(a,b,ex="")=>{const[x1,y1]=a,[x2,y2]=b;return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3b2414" stroke-width="7" stroke-linecap="round" ${ex}/>`};
+// balloons (teardrops): circle + neck to the wye / end of main
+const ell=(cx,r)=>{const[x,y]=X([cx,mid]);return`<ellipse cx="${x}" cy="${y}" rx="${vert?r*sv:r}" ry="${vert?r:r*sv}" fill="none" stroke="#3b2414" stroke-width="7"/>`};
+g+=ell(cT,rT)+ell(cF,rF);
+const tA=X([cT+rT*Math.cos(-0.35),mid+rT*sv*Math.sin(-0.35)]),tB=X([cT+rT*Math.cos(0.35),mid+rT*sv*Math.sin(0.35)]);
+g+=line(tA,pt("WYE"))+line(tB,pt("WYE"));
+const fA=X([cF-rF*Math.cos(-0.35),mid+rF*sv*Math.sin(-0.35)]),fB=X([cF-rF*Math.cos(0.35),mid+rF*sv*Math.sin(0.35)]),fN=X([m1+40,mid]);
+g+=line(pt("WYE"),fN)+line(fN,fA)+line(fN,fB);
+for(const b of BRANCHES)g+=line(pt(b.at),pt(b.id));
+for(const l of LEGS){const a=pt(l.from),w=pt(l.via[0]);g+=`<path d="M${a[0]},${a[1]} L${w[0]},${w[1]}" stroke="#8a2e12" stroke-width="4" stroke-dasharray="12 8" fill="none"/>`;const p=pt(l.to);g+=`<text x="${vert?p[0]+95:p[0]}" y="${p[1]+(vert?55:50)}" text-anchor="${vert?"end":"middle"}" font-style="italic" font-size="${vert?24:18}" fill="#8a2e12">${l.label}</text>`}
+const tw=vert?190:150,th=vert?50:40,fs=vert?24:17;
+for(const b of ALLB){const[x,y]=pt(b.id);const o=M.occ[b.id],c=M.cl[b.id],bd=M.bad.has(b.id);const fill=o?"#6b4a2b":c?"#e8c46a":"#fbf3dd",st=bd?"#c0261b":"#3b2414";
+const nm=b.name,f=nm.length>14?fs*0.82:fs;g+=`<g class="blk" data-b="${b.id}"><rect x="${x-tw/2}" y="${y-th/2}" width="${tw}" height="${th}" rx="9" fill="${fill}" stroke="${st}" stroke-width="${bd?6:3}"/><text x="${x}" y="${y+f*0.36}" text-anchor="middle" font-size="${f}" font-weight="bold" fill="${o?"#fbf3dd":"#3b2414"}">${esc(nm)}</text></g>`}
+const cnt={},R=vert?28:22;for(const t of M.tr){const[x,y]=pt(t.blk);const k=cnt[t.blk]=(cnt[t.blk]||0)+1;const e=engOf(t.t).split("/")[0];const lab=e!=="—"?e:t.t.slice(0,3).toUpperCase();const mx=x+(k-1)*(R*2+4)-tw/2+R,my=y-th/2-R-2;
+g+=`<g><title>${esc(t.t)} · ${esc(ec(t.t))}</title><circle cx="${mx}" cy="${my}" r="${R}" fill="#8a2e12" stroke="#fbf3dd" stroke-width="3"/><text x="${mx}" y="${my+R*0.3}" text-anchor="middle" font-size="${lab.length>4?R*0.5:R*0.68}" font-weight="900" fill="#fff">${esc(lab)}</text></g>`}
+const cap=(txt,u,v)=>{const[x,y]=X([u,v]);return`<text x="${x}" y="${y}" text-anchor="middle" font-size="${vert?22:16}" font-style="italic" fill="#6b4a2b" letter-spacing="2">${txt}</text>`};
+g+=cap("TOWN BALLOON",vert?cT+8:cT,vert?mid:mid+rT+42)+cap("MAIN · SINGLE TRACK",vert?(P.SR[0]+P.IG[0])/2:(P.WYE[0]+m1)/2,vert?mid-150:mid-34)+cap("LOOKOUT BALLOON",vert?cF-40:cF,vert?mid:mid+rF+42);
+box.innerHTML=`<svg viewBox="${vert?-20:-100} -60 ${W+(vert?40:200)} ${H+(vert?160:80)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block">${g}</svg>`;
 $("mapk").innerHTML=M.tr.map(t=>`<span>${esc(ec(t.t))} · ${esc(t.t)}: ${esc(BI[t.blk].name)} → ${t.lim?"clear to <b>"+esc(BI[t.lim].name)+"</b>"+(S.clr[t.t]?"":" (default)"):"no clearance"}${t.rng.some(b=>M.bad.has(b))||M.bad.has(t.blk)?' <b style="color:#c0261b">CONFLICT</b>':""}</span>`).join(" · ");
 $("mapw").style.display=M.tr.length||DSP?"":"none";
 const sel=$("dtr");const h=Object.keys(S.rep).map(t=>`<option${t===dTrain?" selected":""}>${esc(t)}</option>`).join("");if(sel.dataset.h!==h){sel.innerHTML=h;sel.dataset.h=h}if(!dTrain||!S.rep[dTrain])dTrain=sel.value}
@@ -320,6 +344,7 @@ if(q.has("hold"))S.ov[+q.get("hold")]="Held";
 if(q.has("cancel"))S.ov[+q.get("cancel")]="Cancelled";
 for(const v of q.getAll("delay")){const[i,m]=v.split(":").map(Number);const r=byId(i);if(r)S.nt[i]=r.t+m*60}
 if(q.has("set")){const[i,m]=q.get("set").split(":").map(Number);S.nt[i]=m*60}
+window.addEventListener("resize",()=>drawMap());
 if(q.has("display"))document.body.classList.add("disp");
 for(const v of q.getAll("rep")){const[t,l,st,w]=v.split("|");S.rep[t]={loc:l,st,who:w||"",ts:Date.now(),blk:locBlk(l)}}
 for(const v of q.getAll("clr")){const[t,b]=v.split("|");S.clr[t]={limit:b,ts:Date.now()}}
