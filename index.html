@@ -19,7 +19,7 @@ td{padding:.35em .5em;border-bottom:1px dotted var(--br)}tr.r{cursor:pointer}
 td.t{font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}td.n{font-weight:bold;text-transform:uppercase;letter-spacing:.05em}
 tr.nx td{background:rgba(138,46,18,.12)}tr.nx td.t{color:var(--red)}
 .st{font-weight:900;letter-spacing:.08em;white-space:nowrap}.st small{display:block;font-weight:normal;font-style:italic;letter-spacing:0;font-size:.6em}
-.s-Boarding{color:var(--red);animation:bl 1s infinite}@keyframes bl{50%{opacity:.35}}.s-HOLDING{color:#fff;background:var(--red);padding:0 .3em}
+.s-Boarding{color:var(--red);animation:bl 1s infinite}@keyframes bl{50%{opacity:.35}}.s-HOLDING{color:#fff;background:var(--red);padding:0 .3em}.s-REVERSING{color:#fff;background:#c4651f;padding:0 .3em}.tg.rv{background:#c4651f}.fm label.rvl{flex-direction:row;align-items:center;gap:.5em;flex-wrap:wrap}.fm label.rvl input{width:auto;min-height:0;transform:scale(1.6);margin:.2em .5em}
 .sec{font-weight:bold;letter-spacing:.2em;margin:1vw 0 .3vw;border-bottom:2px solid var(--br);cursor:pointer;font-size:clamp(14px,1.5vw,22px)}
 #dep tr{opacity:.5}#dep tr.cx{opacity:.85}#dep.hide{display:none}
 .menu{position:fixed;inset:0;background:rgba(59,36,20,.5);display:none;align-items:center;justify-content:center}.menu.on{display:flex}
@@ -125,14 +125,16 @@ h1{white-space:nowrap;overflow-wrap:normal;word-break:keep-all}
 <label>TRAIN<select id="f_tr" data-cu="f_trc"><option value="Excursion Train">Excursion Train</option><option value="Steamboat Train">Steamboat Train</option><option value="Prairie Fire Sunset Dinner Train">Prairie Fire Sunset Dinner Train</option><option value="Harvest Train">Harvest Train</option><option value="Freight Train">Freight Train</option><option value="__c">Custom…</option></select><input id="f_trc" class="cu" placeholder="Train name"></label>
 <label>ENGINE<span style="font-weight:normal;font-style:italic;margin-top:.4em">Chosen by the train’s operator</span><select id="f_en" style="display:none"><option value="">—</option></select></label>
 <label>NOTE (optional)<input id="f_no" placeholder="e.g. for Harvest Train"></label>
+<label class="rvl"><input type="checkbox" id="f_rv">REVERSE MOVE ↩<span style="font-weight:normal;font-style:italic;font-size:.85em;flex-basis:100%">Backing (opposing) run. From and To are map stations.</span></label>
 <label>FROM<select id="f_fr" data-cu="f_frc"><option value="Red Rock Junction">Red Rock Junction</option><option value="Bautista">Bautista</option><option value="Steamboat">Steamboat</option><option value="Fort Frontier">Fort Frontier</option><option value="Hobo’s Hideout">Hobo’s Hideout</option><option value="Shady Rest">Shady Rest</option><option value="Pumpkin Patch">Pumpkin Patch</option><option value="Lookout loop">Lookout loop</option><option value="__c">Custom…</option></select><input id="f_frc" class="cu" placeholder="Station"></label>
 <label>TO / VIA<select id="f_to" data-cu="f_toc"><option value="Red Rock Junction">Red Rock Junction</option><option value="Bautista">Bautista</option><option value="Steamboat">Steamboat</option><option value="Fort Frontier">Fort Frontier</option><option value="Hobo’s Hideout">Hobo’s Hideout</option><option value="Shady Rest">Shady Rest</option><option value="Pumpkin Patch">Pumpkin Patch</option><option value="Lookout loop">Lookout loop</option><option value="__c">Custom…</option></select><input id="f_toc" class="cu" placeholder="Station or via"></label>
 </div><div class="bt"><button type="button" id="fc" style="background:#777">CANCEL</button><button type="button" id="fs" class="alt">SAVE TRAIN</button></div></form></div>
 <script>
-const TT1=[{"id": 0, "t": 0, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 1", "hold": ""}, {"id": 1, "t": 60, "train": "Steamboat Train", "eng": "", "frm": "Red Rock Junction", "to": "Steamboat", "hold": ""}, {"id": 2, "t": 180, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch (backing) · Run 1", "hold": ""}, {"id": 3, "t": 180, "train": "Steamboat Train", "eng": "", "frm": "Curiosity Canyon / Wye", "to": "Hold", "hold": "for Harvest Train"}, {"id": 4, "t": 420, "train": "Harvest Train", "eng": "", "frm": "Pumpkin Patch", "to": "Wye → Shady Rest", "hold": ""}, {"id": 5, "t": 420, "train": "Steamboat Train", "eng": "", "frm": "Wye", "to": "Steamboat (layover)", "hold": ""}, {"id": 6, "t": 480, "train": "Freight Train", "eng": "", "frm": "Red Rock Junction", "to": "Fort Frontier", "hold": ""}, {"id": 7, "t": 540, "train": "Excursion Train", "eng": "", "frm": "Red Rock Junction", "to": "Excursion loop", "hold": ""}, {"id": 8, "t": 600, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 2", "hold": ""}, {"id": 9, "t": 720, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch (backing) · Run 2", "hold": ""}, {"id": 10, "t": 720, "train": "Excursion & Freight", "eng": "", "frm": "Curiosity Canyon / Wye", "to": "Hold", "hold": "for Harvest Train"}, {"id": 11, "t": 960, "train": "Excursion Train", "eng": "", "frm": "Wye", "to": "Fort Frontier · Hobo’s Hideout", "hold": ""}, {"id": 12, "t": 1020, "train": "Freight Train", "eng": "", "frm": "Fort Frontier", "to": "Red Rock Jct via Hobo’s Hideout", "hold": ""}, {"id": 13, "t": 1140, "train": "Steamboat Train", "eng": "", "frm": "Steamboat", "to": "Fort Frontier · Hobo’s Hideout", "hold": ""}, {"id": 14, "t": 1260, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 3", "hold": "for Steamboat Train (Lookout loop)"}, {"id": 15, "t": 1380, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch (backing) · Run 3", "hold": ""}, {"id": 16, "t": 1620, "train": "Harvest Train", "eng": "", "frm": "Pumpkin Patch", "to": "Wye → Shady Rest", "hold": ""}, {"id": 17, "t": 1800, "train": "All Trains", "eng": "", "frm": "All stations", "to": "Tie up · Session ends", "hold": ""}],K="nvl-departures-v2",KS="nvl-schedules";
+const TT1=[{"id": 0, "t": 0, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 1", "hold": ""}, {"id": 1, "t": 60, "train": "Steamboat Train", "eng": "", "frm": "Red Rock Junction", "to": "Steamboat", "hold": ""}, {"id": 2, "t": 180, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch · Run 1", "hold": "", "rev": true}, {"id": 3, "t": 180, "train": "Steamboat Train", "eng": "", "frm": "Curiosity Canyon / Wye", "to": "Hold", "hold": "for Harvest Train"}, {"id": 4, "t": 420, "train": "Harvest Train", "eng": "", "frm": "Pumpkin Patch", "to": "Wye → Shady Rest", "hold": ""}, {"id": 5, "t": 420, "train": "Steamboat Train", "eng": "", "frm": "Wye", "to": "Steamboat (layover)", "hold": ""}, {"id": 6, "t": 480, "train": "Freight Train", "eng": "", "frm": "Red Rock Junction", "to": "Fort Frontier", "hold": ""}, {"id": 7, "t": 540, "train": "Excursion Train", "eng": "", "frm": "Red Rock Junction", "to": "Excursion loop", "hold": ""}, {"id": 8, "t": 600, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 2", "hold": ""}, {"id": 9, "t": 720, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch · Run 2", "hold": "", "rev": true}, {"id": 10, "t": 720, "train": "Excursion & Freight", "eng": "", "frm": "Curiosity Canyon / Wye", "to": "Hold", "hold": "for Harvest Train"}, {"id": 11, "t": 960, "train": "Excursion Train", "eng": "", "frm": "Wye", "to": "Fort Frontier · Hobo’s Hideout", "hold": ""}, {"id": 12, "t": 1020, "train": "Freight Train", "eng": "", "frm": "Fort Frontier", "to": "Red Rock Jct via Hobo’s Hideout", "hold": ""}, {"id": 13, "t": 1140, "train": "Steamboat Train", "eng": "", "frm": "Steamboat", "to": "Fort Frontier · Hobo’s Hideout", "hold": ""}, {"id": 14, "t": 1260, "train": "Prairie Fire Dinner Train", "eng": "", "frm": "Bautista", "to": "Nonstop loop · Run 3", "hold": "for Steamboat Train (Lookout loop)"}, {"id": 15, "t": 1380, "train": "Harvest Train", "eng": "", "frm": "Red Rock Junction", "to": "Pumpkin Patch · Run 3", "hold": "", "rev": true}, {"id": 16, "t": 1620, "train": "Harvest Train", "eng": "", "frm": "Pumpkin Patch", "to": "Wye → Shady Rest", "hold": ""}, {"id": 17, "t": 1800, "train": "All Trains", "eng": "", "frm": "All stations", "to": "Tie up · Session ends", "hold": ""}],K="nvl-departures-v2",KS="nvl-schedules";
 const $=i=>document.getElementById(i);
 let SAV=JSON.parse(localStorage.getItem(KS)||"{}");
-let S=JSON.parse(localStorage.getItem(K)||"null");
+const migRows=rows=>{for(const r of rows||[])if(r&&!("rev" in r)&&/\(backing\)/i.test(r.to||"")){r.rev=true;r.to=r.to.replace(/\s*\(backing\)/i,"")}return rows};for(const k in SAV)migRows(SAV[k]);
+let S=JSON.parse(localStorage.getItem(K)||"null");if(S)migRows(S.rows);
 if(!S){const o=JSON.parse(localStorage.getItem("nvl-departures-v1")||"null")||{};S={el:o.el||0,run:false,at:0,ov:o.ov||{},nt:o.nt||{},start:o.start||"19:00",wall:!!o.wall,hide:!!o.hide,sched:"tt1",rows:JSON.parse(JSON.stringify(TT1))}}
 const q=new URLSearchParams(location.search);
 let sv=()=>{localStorage.setItem(K,JSON.stringify(S));localStorage.setItem(KS,JSON.stringify(SAV))};
@@ -147,7 +149,7 @@ const esc=x=>String(x==null?"":x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 function stat(r,e){const o=S.ov[r.id];if(o)return o;const t=T(r);return e>=t?"Departed":e>=t-60?"Boarding":"Scheduled"}
 function row(r,s,nx){const lab=s==="Held"?"HOLDING":s;const note=s==="Held"&&r.hold?`<small>${esc(r.hold)}</small>`:"";
 const t=T(r),dd=t-r.t,tag=dd===0?"":dd>0?`<span class="tg">DELAYED +${Math.round(dd/60)}</span>`:'<span class="tg">RESCHEDULED</span>',was=dd===0?"":`<span class="was">Was ${tl(r.t)}</span>`;
-return `<tr class="r${nx?" nx":""}${s==="Cancelled"?" cx":""}" data-i="${r.id}"><td class="t">${tl(t)}${was}</td><td class="n">${esc(r.train)}${tag}</td><td>${ec(r.train)==="—"&&!/^all trains$/i.test(r.train)?'<i style="opacity:.55;font-size:.75em">Awaiting operator</i>':esc(ec(r.train))}</td><td>${esc(r.frm)}</td><td>${esc(r.to)}</td><td class="st"><span class="s-${lab}">${lab.toUpperCase()}</span>${note}</td></tr>`}
+return `<tr class="r${nx?" nx":""}${s==="Cancelled"?" cx":""}" data-i="${r.id}"><td class="t">${tl(t)}${was}</td><td class="n">${esc(r.train)}${r.rev?'<span class="tg rv">↩ REVERSE</span>':""}${tag}</td><td>${ec(r.train)==="—"&&!/^all trains$/i.test(r.train)?'<i style="opacity:.55;font-size:.75em">Awaiting operator</i>':esc(ec(r.train))}</td><td>${esc(r.frm)}</td><td>${esc(r.to)}</td><td class="st"><span class="s-${lab}">${lab.toUpperCase()}</span>${note}</td></tr>`}
 function picker(){const p=$("pk");let h='<option value="tt1">Timetable No. 1</option><option value="blank">Blank Schedule</option>';for(const n of Object.keys(SAV))h+=`<option value="sv:${esc(n)}">${esc(n)}</option>`;p.innerHTML=h;p.value=S.sched;if(p.value!==S.sched)p.value="blank";}
 let draw=function(){const e=el();$("clk").textContent=mmss(e);$("wc").textContent=S.wall?wall(e):"";
 let up="",dn="",nx=null;
@@ -170,18 +172,22 @@ $("cl").onclick=async()=>{if(await ask("Clear every row from this schedule?")){S
 let edit=null;
 function cu(sel){const c=$(sel.dataset.cu);if(c)c.classList.toggle("on",sel.value==="__c")}
 for(const id of["f_tr","f_fr","f_to"])$(id).onchange=e=>cu(e.target);
-function setSel(id,v){const s=$(id);if([...s.options].some(o=>o.value===v)){s.value=v}else if(s.dataset.cu){s.value="__c";$(s.dataset.cu).value=v}else{const o=document.createElement("option");o.value=o.textContent=v;s.appendChild(o);s.value=v}cu(s)}
+function setSel(id,v){const s=$(id);if([...s.options].some(o=>o.value===v)){s.value=v}else if(s.dataset.cu&&[...s.options].some(o=>o.value==="__c")){s.value="__c";$(s.dataset.cu).value=v}else{const o=document.createElement("option");o.value=o.textContent=v;s.appendChild(o);s.value=v}cu(s)}
 function toClock(sec){const[h,m]=hm();const x=(h*60+m+Math.round(sec/60))%1440;return String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0")}
-function openForm(r){edit=r?r.id:null;$("fh").textContent=r?"EDIT TRAIN":"ADD TRAIN";
+const FO={f_fr:$("f_fr").innerHTML,f_to:$("f_to").innerHTML};
+function setRev(on){for(const id of["f_fr","f_to"]){const s=$(id);s.innerHTML=on?ALLB.filter(b=>!b.track).map(b=>`<option value="${esc(b.name)}">${esc(b.name)}</option>`).join(""):FO[id];cu(s)}}
+const stnName=v=>{const b=stn(v);return b?BI[b].name:null};
+$("f_rv").onchange=e=>{const a=gv("f_fr"),b=gv("f_to"),on=e.target.checked;setRev(on);setSel("f_fr",on?(stnName(a)||"Red Rock Junction"):a);setSel("f_to",on?(stnName(b)||"Pumpkin Patch"):b)};
+function openForm(r){edit=r?r.id:null;$("f_rv").checked=!!(r&&r.rev);setRev(!!(r&&r.rev));$("fh").textContent=r?"EDIT TRAIN":"ADD TRAIN";
 const t=r?r.t:Math.ceil(el()/60)*60;$("f_t").value=Math.round(t/60);$("f_tc").value=toClock(t);
 $("f_t").classList.toggle("cu",S.wall);$("f_tc").classList.toggle("on",S.wall);$("tlab").textContent=S.wall?"(clock time)":"(minutes from start)";
-setSel("f_tr",r?r.train:"Excursion Train");setSel("f_fr",r?r.frm:"Red Rock Junction");setSel("f_to",r?r.to:"Fort Frontier");$("f_no").value=r?r.hold||"":"";
+setSel("f_tr",r?r.train:"Excursion Train");setSel("f_fr",r?r.frm:"Red Rock Junction");setSel("f_to",r?(r.rev?(stnName(r.to)||r.to):r.to):"Fort Frontier");if(r&&r.rev)setSel("f_fr",stnName(r.frm)||r.frm);$("f_no").value=r?r.hold||"":"";
 $("fm").classList.add("on")}
 const gv=id=>{const s=$(id);return s.value==="__c"?$(s.dataset.cu).value.trim():s.value};
 $("fc").onclick=()=>$("fm").classList.remove("on");
 $("fs").onclick=async()=>{let m;if(S.wall){const v=$("f_tc").value;if(!v){await tell("Enter a time.");return}const[a,b]=v.split(":").map(Number),[h,mm]=hm();m=((a*60+b)-(h*60+mm)+1440)%1440}else{m=parseFloat($("f_t").value);if(isNaN(m)||m<0){await tell("Enter minutes from start.");return}}
-const r={t:Math.round(m*60),train:gv("f_tr")||"Train",eng:"",frm:gv("f_fr"),to:gv("f_to"),hold:$("f_no").value.trim()};
-if(edit!=null){const o=byId(edit);Object.assign(o,r);delete S.nt[edit]}else{r.id=nid();S.rows.push(r)}
+const r={t:Math.round(m*60),train:gv("f_tr")||"Train",eng:"",frm:gv("f_fr"),to:gv("f_to"),hold:$("f_no").value.trim()};if($("f_rv").checked){if(!stn(r.frm)||!stn(r.to)||stn(r.frm)===stn(r.to)){await tell("A reverse move needs two different map stations.");return}r.rev=true}
+if(edit!=null){const o=byId(edit);Object.assign(o,r);if(!r.rev)delete o.rev;delete S.nt[edit]}else{r.id=nid();S.rows.push(r)}
 sv();$("fm").classList.remove("on");draw()};
 $("ad").onclick=()=>openForm(null);
 // tap menu
@@ -233,17 +239,17 @@ $("syh").onclick=()=>{join(newCode(),true).then(()=>{$("syl").textContent=locati
 $("syj").onclick=()=>join($("syi").value,false).then(()=>{$("syl").textContent=code?location.href.split("?")[0]+"?join="+code:""});
 $("syo").onclick=async()=>{if(await ask("Stop syncing this screen?"))leave()};
 // operator
-const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","Junction","Lookout Loop","Pumpkin Patch","Indian Gulch","Town","Yard","Car Barn","On the main"],STS=["Departed","Arrived","Holding","Running late","In the clear"];
+const LOCS=["Red Rock Junction","Bautista","Steamboat","Fort Frontier","Hobo’s Hideout","Shady Rest","Curiosity Canyon","Junction","Lookout Loop","Pumpkin Patch","Indian Gulch","Town","Car Barn","On the main"],STS=["Departed","Arrived","Holding","Reversing","Running late","In the clear"];
 let OP={train:localStorage.getItem("nvl-op-train")||"",who:localStorage.getItem("nvl-op-who")||"",loc:"",st:""};
 const trains=()=>{const m=new Map();for(const r of S.rows)if(!/^all trains$/i.test(r.train)&&!m.has(r.train))m.set(r.train,r.eng);return m};
 const conOf=t=>{const x=S.rep[t];return x&&x.con||""};const ec=t=>{const e=engOf(t),c=conOf(t);return e==="—"?(c||"—"):c?e+" · "+c:e};
 const engOf=t=>{const one=n=>{const x=S.rep[n]||S.rep[n+" Train"];return x&&x.eng||""};const parts=t.split(/ & /);const e=(parts.length>1?parts.map(one):[one(t)]).filter(Boolean);return e.join("/")||"—"};
 function ago(ts){const s=Math.max(0,Math.round((now()-ts)/1000));return s<60?s+"s ago":Math.floor(s/60)+"m "+String(s%60).padStart(2,"0")+"s ago"}
-function drawLS(){const JH=new Set(mapState().tr.filter(a=>a.jhold).map(a=>a.t));const R=Object.entries(S.rep).sort((a,b)=>b[1].ts-a[1].ts);$("lsw").style.display=R.length?"":"none";
-$("ls").innerHTML=R.map(([t,x])=>`<tr><td class="n">${esc(t)}</td><td>${esc(ec(t))}</td><td>${esc(x.loc||"—")}</td><td class="st">${JH.has(t)?'<span class="s-HOLDING">HOLDING AT JUNCTION</span>':`<span class="s-${x.st==="Holding"?"HOLDING":x.st==="Running late"?"Cancelled":"x"}">${esc((x.st||"").toUpperCase())}</span>`}</td><td>${ago(x.ts)}${x.who?" · "+esc(x.who):""}</td></tr>`).join("");
+function drawLS(){const M=mapState();const R=Object.entries(S.rep).sort((a,b)=>b[1].ts-a[1].ts);for(const a of M.tr)if(a.syn)R.push([a.t,{loc:BI[a.blk].name,st:"",ts:0,syn:1}]);$("lsw").style.display=R.length?"":"none";
+$("ls").innerHTML=R.map(([t,x])=>`<tr><td class="n">${esc(t)}</td><td>${esc(ec(t))}</td><td>${esc(x.loc||"—")}</td><td class="st">${lsState(t,S.rep[t],M)}</td><td>${x.syn?"per timetable":ago(x.ts)}${x.who?" · "+esc(x.who):""}</td></tr>`).join("");
 if($("opv").classList.contains("on"))drawOp()}
 function drawOp(){const ts=trains(),sel=$("opt");const h=[...ts.keys()].map(t=>`<option${t===OP.train?" selected":""}>${esc(t)}</option>`).join("");if(sel.dataset.h!==h){sel.innerHTML=h;sel.dataset.h=h}if(!ts.has(OP.train)&&ts.size){OP.train=[...ts.keys()][0];sel.value=OP.train}
-const c=S.rep[OP.train];const ce=c&&c.eng;$("ope").textContent="";$("open").textContent=ce?"· "+(ROSTER.find(x=>x[0]===ce)||[ce,ce])[1]:"· pick yours";$("opce").style.display=ce&&!OP.chg?"":"none";$("opeg").style.display=ce&&!OP.chg?"none":"";for(const b of document.querySelectorAll("#opeg button"))b.classList.toggle("sel",b.dataset.e===ce);const cc=c&&c.con;$("opcn").textContent=cc?"· "+cc:"· pick yours";$("opcc").style.display=cc&&!OP.cchg?"":"none";$("opcg").style.display=cc&&!OP.cchg?"none":"";for(const b of document.querySelectorAll("#opcg button"))b.classList.toggle("sel",b.dataset.c===cc);$("opl").innerHTML=c?`Last report: <b>${esc(c.loc)}</b> · <b>${esc(c.st)}</b> · ${ago(c.ts)}${c.who?" by "+esc(c.who):""}`:"No report yet.";
+const c=S.rep[OP.train];const ce=c&&c.eng;$("ope").textContent="";$("open").textContent=ce?"· "+(ROSTER.find(x=>x[0]===ce)||[ce,ce])[1]:"· pick yours";$("opce").style.display=ce&&!OP.chg?"":"none";$("opeg").style.display=ce&&!OP.chg?"none":"";for(const b of document.querySelectorAll("#opeg button"))b.classList.toggle("sel",b.dataset.e===ce);const cc=c&&c.con;$("opcn").textContent=cc?"· "+cc:"· pick yours";$("opcc").style.display=cc&&!OP.cchg?"":"none";$("opcg").style.display=cc&&!OP.cchg?"none":"";for(const b of document.querySelectorAll("#opcg button"))b.classList.toggle("sel",b.dataset.c===cc);const rvm=mapState().tr.find(a=>a.t===OP.train&&a.rev);$("opl").innerHTML=(rvm?`<b style="color:#b0561f">↩ REVERSING</b> ${esc(BI[rvm.rev.a].name)} → ${esc(BI[rvm.rev.b].name)} · `:"")+(c?`Last report: <b>${esc(c.loc)}</b> · <b>${esc(c.st)}</b> · ${ago(c.ts)}${c.who?" by "+esc(c.who):""}`:"No report yet.");
 for(const b of document.querySelectorAll("#opg button"))b.classList.toggle("sel",b.dataset.l===OP.loc);for(const b of document.querySelectorAll("#ops button"))b.classList.toggle("sel",b.dataset.s===OP.st)}
 // Consists offered to operators (edit freely)
 const CONSISTS=["Freight","Red Rocket","Dinner Train","Shorties","Excursion","Harvest"];
@@ -289,9 +295,9 @@ const FAR_LOOP=[ // Lookout Loop (the far balloon), in direction of travel. trac
  {id:"FF",name:"Fort Frontier",stop:1},
 ];
 // Sidings off the line: at = block just before the turnout; the train rejoins at the next block.
-const BRANCHES=[{id:"STB",name:"Steamboat",at:"LL",kind:"siding",stop:1},{id:"CB",name:"Car Barn",at:"RRJ",kind:"siding",loop:"town",stop:1},{id:"YD",name:"Yard",at:"BAU",kind:"yard",stop:1}]; // Yard: inner loop inside the town balloon, leaves and rejoins at Bautista
-// Harvest Train backing move: Red Rock Junction straight to the wye, then out the main to the Pumpkin Patch.
-const LEGS=[{from:"RRJ",to:"PP",via:["WYE","HH","PP"],label:"Harvest direct route (backing)"}];
+const BRANCHES=[{id:"STB",name:"Steamboat",at:"LL",kind:"siding",stop:1},{id:"CB",name:"Car Barn",at:"RRJ",kind:"siding",loop:"town",stop:1}];
+// Fixed extra legs (none now: backing moves are scheduled as Reverse moves on the timetable rows).
+const LEGS=[];
 // Full trip in order of travel (main blocks are passed twice: outbound and returning).
 const ROUTE=[...TOWN_LOOP.map(b=>b.id),WYE.id,...MAIN.map(b=>b.id),...FAR_LOOP.map(b=>b.id),...MAIN.map(b=>b.id).reverse(),WYE.id];
 const BLOCKS=[...TOWN_LOOP,WYE,...MAIN,...FAR_LOOP];
@@ -302,46 +308,106 @@ function locBlk(loc){const n=(loc||"").toLowerCase().replace(/^the /,"");const b
 function path(from,to,ri){if(!from||!to||from===to)return[];const lg=LEGS.find(l=>l.from===from&&l.to===to);if(lg)return lg.via.slice();
 const out=[];const tb=BI[to];let i=BI[from]&&BI[from].at?routeIdx(BI[from].at,null):routeIdx(from,ri);if(i==null)return[];
 for(let k=0;k<ROUTE.length;k++){i=(i+1)%ROUTE.length;const c=ROUTE[i];if(tb&&tb.at&&c===tb.at){out.push(c,to);return out}out.push(c);if(c===to)return out}return out}
-function defLimit(train,blk,ri){if(!blk)return null;if(/harvest/i.test(train)&&blk==="RRJ")return"PP";let i=BI[blk]&&BI[blk].at?routeIdx(BI[blk].at,null):routeIdx(blk,ri);if(i==null)return null;
+function defLimit(train,blk,ri){if(!blk)return null;let i=BI[blk]&&BI[blk].at?routeIdx(BI[blk].at,null):routeIdx(blk,ri);if(i==null)return null;
 for(let k=0;k<ROUTE.length;k++){i=(i+1)%ROUTE.length;const b=BI[ROUTE[i]];if(b.stop||b.hold)return b.id}return null}
 S.clr=S.clr||{};let DSP=false,dTrain="";
-function mapState(){const tr=[];for(const[t,x]of Object.entries(S.rep)){const blk=x.blk||locBlk(x.loc);if(!blk||!BI[blk])continue;const c=S.clr[t];const lim=c&&c.limit!==undefined?c.limit:defLimit(t,blk,x.ri);const rng=lim?path(blk,lim,x.ri):[];tr.push({t,blk,lim,rng,ri:x.ri})}
-const J=JUNCTION_RULE,jFirst=ROUTE.indexOf(J.at),bad=new Set();
-for(const a of tr){if(a.blk!==J.at)continue;const ri=a.ri!=null&&ROUTE[a.ri]===J.at?a.ri:jFirst;if(ri!==jFirst)continue; // only trains that came from Bautista
+// Reverse (backing / opposing) moves come from schedule rows with rev:true; From/To are map stations.
+const ADJ={};{const link=(a,b)=>{(ADJ[a]=ADJ[a]||new Set()).add(b);(ADJ[b]=ADJ[b]||new Set()).add(a)};ROUTE.forEach((id,i)=>link(id,ROUTE[(i+1)%ROUTE.length]));BRANCHES.forEach(b=>link(b.at,b.id))}
+function bfs(a,b){const prev={[a]:null},q=[a];while(q.length){const c=q.shift();if(c===b)break;for(const n of ADJ[c]||[])if(!(n in prev)){prev[n]=c;q.push(n)}}if(!(b in prev))return[a];const out=[];for(let c=b;c!=null;c=prev[c])out.unshift(c);return out}
+const stn=s=>locBlk(String(s||"").split(" · ")[0].replace(/\s*\(.*?\)\s*/g," ").trim());
+function revMoves(){const e=el(),out=[];for(const r of S.rows){if(!r.rev)continue;if(stat(r,e)!=="Departed")continue;
+ if(S.rows.some(o=>o!==r&&o.train===r.train&&T(o)>T(r)&&stat(o,e)==="Departed"))continue; // its next move has started
+ const a=stn(r.frm),b=stn(r.to);if(!a||!b||a===b)continue;const x=S.rep[r.train];if(x&&x.blk===b&&/^(Arrived|In the clear)$/.test(x.st||""))continue; // reported in at the far end
+ out.push({r,t:r.train,a,b,path:bfs(a,b)})}return out}
+function mapState(){const tr=[];for(const[t,x]of Object.entries(S.rep)){const blk=x.blk||locBlk(x.loc);if(!blk||!BI[blk])continue;const c=S.clr[t];const ex=!!(c&&c.limit!==undefined);const lim=ex?c.limit:defLimit(t,blk,x.ri);const rng=lim?path(blk,lim,x.ri):[];tr.push({t,blk,lim,rng,ri:x.ri,ex})}
+const RS=new Set(),bad=new Set();
+for(const m of revMoves()){let a=tr.find(o=>o.t===m.t);if(!a){a={t:m.t,blk:m.a,ri:null,syn:true};tr.push(a)}const i=m.path.indexOf(a.blk);const rest=i>=0?m.path.slice(i):m.path;a.rev=m;a.rng=rest.slice(1);a.lim=m.b;rest.forEach(b=>RS.add(b))}
+// the only opposing move allowed is a reverse run: everyone else holds short of its path
+for(const a of tr){if(a.rev)continue;if(RS.has(a.blk)){bad.add(a.blk);a.rconf=true;continue}const k=a.rng.findIndex(b=>RS.has(b));if(k<0)continue;
+ if(a.ex){a.rng.slice(k).filter(b=>RS.has(b)).forEach(b=>bad.add(b));a.rconf=true}else{a.rng=a.rng.slice(0,k);a.lim=a.rng.length?a.rng[a.rng.length-1]:a.blk;a.rhold=true}}
+const J=JUNCTION_RULE,jFirst=ROUTE.indexOf(J.at);
+for(const a of tr){if(a.blk!==J.at||a.rev)continue;const ri=a.ri!=null&&ROUTE[a.ri]===J.at?a.ri:jFirst;if(ri!==jFirst)continue; // only trains that came from Bautista
  const busy=tr.some(o=>o!==a&&(J.stretch.includes(o.blk)||o.rng.some(b=>J.stretch.includes(b))));if(busy){a.jhold=true;a.lim=J.at;a.rng=[];bad.add(J.at)}}
 const occ={},cl={};for(const a of tr){(occ[a.blk]=occ[a.blk]||[]).push(a.t);for(const b of a.rng)(cl[b]=cl[b]||[]).push(a.t)}
-for(const b of ALLB){const o=(occ[b.id]||[]).length,c=(cl[b.id]||[]).length;if(o+c>1)bad.add(b.id)}return{tr,occ,cl,bad}}
+for(const b of ALLB){const o=(occ[b.id]||[]).length,c=(cl[b.id]||[]).length;if(o+c>1)bad.add(b.id)}return{tr,occ,cl,bad,RS}}
+const lsState=(t,x,M)=>{const a=M.tr.find(o=>o.t===t);if(a&&a.rev)return'<span class="s-REVERSING">↩ REVERSING</span>';if(a&&a.jhold)return'<span class="s-HOLDING">HOLDING AT JUNCTION</span>';if(a&&a.rhold)return'<span class="s-HOLDING">HOLDING · REVERSE MOVE</span>';
+ return x?`<span class="s-${x.st==="Holding"?"HOLDING":x.st==="Reversing"?"REVERSING":x.st==="Running late"?"Cancelled":"x"}">${esc((x.st||"").toUpperCase())}</span>`:""};
 function drawMap(){const box=$("map");const vert=(box.clientWidth||window.innerWidth)<620;
-// layout in (u = along the line, v = across) then map to x,y
-const L=1500,mid=vert?310:190,Hh=mid*2,rT=vert?125:150,rF=125,cT=rT+30,cF=L-rF-30,P={},sv=vert?1.55:0.92;
-const onCircle=(cx,r,list,a0,a1)=>list.forEach((b,i)=>{const a=a0+(a1-a0)*(i+1)/(list.length+1);P[b.id]=[cx+r*Math.cos(a),mid+r*Math.sin(a)*sv]});
-onCircle(cT,rT,TOWN_LOOP,-Math.PI*0.25,-Math.PI*1.75); // around the west balloon, away from the wye
-P.WYE=[cT+rT+70,mid];
-const m0=P.WYE[0]+150,m1=cF-rF-60;MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,mid]});
-onCircle(cF,rF,FAR_LOOP,Math.PI*0.75,-Math.PI*0.75);
-P.LL=[cF+rF,mid];for(const b of BRANCHES){if(b.kind==="siding"&&b.loop==="town"){const a=-Math.PI*1.3,du=Math.cos(a),dv=Math.sin(a);P["_j"+b.id]=[cT+rT*du,mid+rT*sv*dv];P[b.id]=vert?[cT-rT-85,mid+rT*sv*dv+30]:[cT+(rT+70)*du-60,mid+(rT*sv+62)*dv]}else if(b.kind==="siding"){const a=-Math.PI*0.08;P["_j"+b.id]=[cF+rF*Math.cos(a),mid+rF*sv*Math.sin(a)];P[b.id]=vert?[cF+rF+85,mid-110]:[cF+rF*0.15,mid-rF*sv-70]}else if(b.kind==="yard"){const[x,y]=P[b.at];P[b.id]=[cT+(x-cT)*0.12,mid+(y-mid)*0.12]}else{const[x,y]=P[b.at];P[b.id]=[x,y+120]}}
-const W=vert?Hh:L,H=vert?L:Hh+60,X=([u,v])=>vert?[Hh-v,u]:[L-u,v];
-const pt=id=>X(P[id]);const M=mapState();let g="";
-const line=(a,b,ex="")=>{const[x1,y1]=a,[x2,y2]=b;return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3b2414" stroke-width="7" stroke-linecap="round" ${ex}/>`};
-// balloons (teardrops): circle + neck to the wye / end of main
-const ell=(cx,r)=>{const[x,y]=X([cx,mid]);return`<ellipse cx="${x}" cy="${y}" rx="${vert?r*sv:r}" ry="${vert?r:r*sv}" fill="none" stroke="#3b2414" stroke-width="7"/>`};
-g+=ell(cT,rT);{const o=M.occ.LL,c=M.cl.LL,bd=M.bad.has("LL");const[x,y]=X([cF,mid]);g+=`<ellipse class="blk" data-b="LL" cx="${x}" cy="${y}" rx="${vert?rF*sv:rF}" ry="${vert?rF:rF*sv}" fill="${o?"rgba(107,74,43,.18)":c?"rgba(232,196,106,.35)":"transparent"}" stroke="${bd?"#c0261b":o?"#6b4a2b":c?"#c9a24a":"#3b2414"}" stroke-width="${bd||o||c?11:7}" style="pointer-events:all"/>`}
-const tA=X([cT+rT*Math.cos(-0.35),mid+rT*sv*Math.sin(-0.35)]),tB=X([cT+rT*Math.cos(0.35),mid+rT*sv*Math.sin(0.35)]);
-g+=line(tA,pt("WYE"))+line(tB,pt("WYE"));
-const fA=X([cF-rF*Math.cos(-0.35),mid+rF*sv*Math.sin(-0.35)]),fB=X([cF-rF*Math.cos(0.35),mid+rF*sv*Math.sin(0.35)]),fN=X([m1+40,mid]);
-g+=line(pt("WYE"),fN)+line(fN,fA)+line(fN,fB);
-for(const b of BRANCHES.filter(b=>b.kind==="yard")){const[x,y]=pt(b.id),[bx,by]=pt(b.at);const rr=vert?50:42;const dx=bx-x,dy=by-y,l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l;const ex=x+dx/l*rr,ey=y+dy/l*rr;g+=`<circle cx="${x}" cy="${y}" r="${rr}" fill="none" stroke="#3b2414" stroke-width="5"/><line x1="${bx}" y1="${by}" x2="${ex+nx*12}" y2="${ey+ny*12}" stroke="#3b2414" stroke-width="5"/><line x1="${bx}" y1="${by}" x2="${ex-nx*12}" y2="${ey-ny*12}" stroke="#3b2414" stroke-width="5"/>`}
-for(const b of BRANCHES.filter(b=>b.kind!=="yard"))g+=line(P["_j"+b.id]?X(P["_j"+b.id]):pt(b.at),pt(b.id));
-for(const l of LEGS){const pts=[l.from,...l.via].map(id=>{const[u,v]=P[id];return X([u,v+(id===l.from?0:26)])});g+=`<polyline points="${pts.map(p=>p.join(",")).join(" ")}" stroke="#8a2e12" stroke-width="4" stroke-dasharray="12 8" fill="none"/>`;const p=pts[pts.length-1],q=pts[pts.length-2];g+=`<text x="${vert?p[0]+(p[0]>q[0]?-14:14):(p[0]+q[0])/2}" y="${vert?(p[1]+q[1])/2:p[1]+30}" text-anchor="${vert?(p[0]<Hh/2?"start":"end"):"middle"}" font-style="italic" font-size="${vert?22:17}" fill="#8a2e12">${l.label}</text>`}
-const tw=vert?190:150,th=vert?50:40,fs=vert?24:17;
-for(const b of ALLB){if(b.track)continue;const[x,y]=pt(b.id);const o=M.occ[b.id],c=M.cl[b.id],bd=M.bad.has(b.id);const fill=o?"#6b4a2b":c?"#e8c46a":"#fbf3dd",st=bd?"#c0261b":"#3b2414";
-const nm=b.name,f=nm.length>14?fs*0.82:fs,tW=b.kind==="yard"?tw*0.5:tw;g+=`<g class="blk" data-b="${b.id}"><rect x="${x-tW/2}" y="${y-th/2}" width="${tW}" height="${th}" rx="9" fill="${fill}" stroke="${st}" stroke-width="${bd?6:3}"/><text x="${x}" y="${y+f*0.36}" text-anchor="middle" font-size="${f}" font-weight="bold" fill="${o?"#fbf3dd":"#3b2414"}">${esc(nm)}</text></g>`}
-const cnt={},R=vert?28:22;for(const t of M.tr){const[x,y]=pt(t.blk);const k=cnt[t.blk]=(cnt[t.blk]||0)+1;const e=engOf(t.t).split("/")[0];const lab=e!=="—"?e:t.t.slice(0,3).toUpperCase();const mx=x+(k-1)*(R*2+4)-tw/2+R,my=y-th/2-R-2;
-g+=`<g><title>${esc(t.t)} · ${esc(ec(t.t))}</title><circle cx="${mx}" cy="${my}" r="${R}" fill="#8a2e12" stroke="#fbf3dd" stroke-width="3"/><text x="${mx}" y="${my+R*0.3}" text-anchor="middle" font-size="${lab.length>4?R*0.5:R*0.68}" font-weight="900" fill="#fff">${esc(lab)}</text></g>`}
-const cap=(txt,u,v)=>{const[x,y]=X([u,v]);return`<text x="${x}" y="${y}" text-anchor="middle" font-size="${vert?22:16}" font-style="italic" fill="#6b4a2b" letter-spacing="2">${txt}</text>`};
-g+=cap("TOWN BALLOON",vert?cT+rT+40:cT+rT+10,vert?mid+170:mid+rT+100)+cap("MAIN · SINGLE TRACK",vert?(P.PP[0]+P.IG[0])/2:(P.WYE[0]+m1)/2,vert?mid-150:mid-34)+cap("LOOKOUT LOOP",vert?cF-40:cF,vert?mid:mid+rF+42);
-box.innerHTML=`<svg viewBox="${vert?-20:-100} ${vert?-130:-60} ${W+(vert?40:200)} ${H+(vert?230:80)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block">${g}</svg>`;
-$("mapk").innerHTML=M.tr.map(t=>`<span>${esc(ec(t.t))} · ${esc(t.t)}: ${esc(BI[t.blk].name)} → ${t.jhold?"<b>HOLDING at Junction</b> until Hobo’s Hideout–Shady Rest is clear":t.lim?"clear to <b>"+esc(BI[t.lim].name)+"</b>"+(S.clr[t.t]?"":" (default)"):"no clearance"}${t.rng.some(b=>M.bad.has(b))||M.bad.has(t.blk)?' <b style="color:#c0261b">CONFLICT</b>':""}</span>`).join(" · ");
+// Geometry in (u = along the line, v = across); X() maps to screen. Loops are rounded rectangles.
+const L=1500,rc=vert?55:42,tA=vert?140:150,tB=vert?175:125,fA=vert?125:125,fB=vert?160:110,cT=tA+40,cF=L-fA-40,P={};
+const X=([u,v])=>vert?[-v,u]:[L-u,v];
+const sdf=(cx,A,B,u,v)=>{const qx=Math.abs(u-cx)-(A-rc),qy=Math.abs(v)-(B-rc);return Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-rc};
+const onRR=(cx,A,B,ang)=>{let lo=0,hi=A+B;const c=Math.cos(ang),s=Math.sin(ang);for(let i=0;i<32;i++){const m=(lo+hi)/2;sdf(cx,A,B,cx+c*m,s*m)>0?hi=m:lo=m}return[cx+c*lo,s*lo]};
+const nrm=(cx,A,B,[u,v])=>{const e=.5,gx=sdf(cx,A,B,u+e,v)-sdf(cx,A,B,u-e,v),gy=sdf(cx,A,B,u,v+e)-sdf(cx,A,B,u,v-e),l=Math.hypot(gx,gy)||1;return[gx/l,gy/l]};
+const DIR={}; // outward direction (u,v) for each block's label
+const TANG={SR:-0.3,TWN:-0.86,RRJ:0.86,BAU:0.3};TOWN_LOOP.forEach((b,i)=>{const a=(TANG[b.id]!=null?TANG[b.id]:-0.3-(i*1.4/Math.max(1,TOWN_LOOP.length-1)))*Math.PI;P[b.id]=onRR(cT,tA,tB,a);DIR[b.id]=nrm(cT,tA,tB,P[b.id])});
+P.WYE=[cT+tA+85,0];DIR.WYE=[0,-1];
+const m0=P.WYE[0]+150,m1=cF-fA-70;MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,0];DIR[b.id]=[0,-1]});
+const fN=[m1+45,0],fTop=[cF-fA,-fB*0.45],fBot=[cF-fA,fB*0.45],tTop=[cT+tA,-tB*0.45],tBot=[cT+tA,tB*0.45];
+P.LL=[cF+fA,0];P.FF=onRR(cF,fA,fB,-0.36*Math.PI);DIR.FF=nrm(cF,fA,fB,P.FF);
+for(const b of BRANCHES){if(b.at==="LL"){ // Steamboat: turnout just past the Lookout Loop wye (upper leg), siding runs above the loop
+ const k=0.55;P["_j"+b.id]=[fN[0]+(fTop[0]-fN[0])*k,fTop[1]*k];P[b.id]=[cF-fA*0.35,-fB-62]}
+ else if(b.loop==="town"){ // Car Barn: off the bottom side of the town loop, between Red Rock and Bautista
+ P["_j"+b.id]=[cT-tA*0.15,tB];P[b.id]=[cT-tA*0.15-95,tB+62]}
+ else{const[x,y]=P[b.at];P["_j"+b.id]=[x,y];P[b.id]=[x,y+110]}
+ const j=P["_j"+b.id],e=P[b.id],l=Math.hypot(e[0]-j[0],e[1]-j[1])||1;DIR[b.id]=[(e[0]-j[0])/l,(e[1]-j[1])/l]}
+for(const id in P)if(!DIR[id])DIR[id]=[0,-1];
+const M=mapState(),pt=id=>X(P[id]);const OBS=[];let g="",gl="",gp="",gn="",gm="";
+const seg=(a,b,w)=>{const[x1,y1]=a,[x2,y2]=b,n=Math.max(1,Math.ceil(Math.hypot(x2-x1,y2-y1)/8));for(let i=0;i<=n;i++)OBS.push([x1+(x2-x1)*i/n,y1+(y2-y1)*i/n,w/2+3]);return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3b2414" stroke-width="${w}" stroke-linecap="round"/>`};
+const loopD=(cx,A,B)=>{const pts=[];for(let i=0;i<160;i++){const p=X(onRR(cx,A,B,i/160*2*Math.PI));pts.push(p);OBS.push([p[0],p[1],7])}return"M"+pts.map(p=>p.map(n=>n.toFixed(1)).join(",")).join("L")+"Z"};
+const tw=7;
+g+=`<path d="${loopD(cT,tA,tB)}" fill="none" stroke="#3b2414" stroke-width="${tw}"/>`;
+{const o=M.occ.LL,c=M.cl.LL,bd=M.bad.has("LL"),rv=M.RS.has("LL");g+=`<path class="blk" data-b="LL" d="${loopD(cF,fA,fB)}" fill="${o?"rgba(107,74,43,.12)":"transparent"}" stroke="${bd?"#c0261b":rv?"#d9772b":o?"#6b4a2b":c?"#c9a24a":"#3b2414"}" stroke-width="${bd||o||c||rv?12:tw}" style="pointer-events:all"/>`}
+g+=seg(X(tTop),pt("WYE"),tw)+seg(X(tBot),pt("WYE"),tw)+seg(pt("WYE"),X(fN),tw)+seg(X(fN),X(fTop),tw)+seg(X(fN),X(fBot),tw);
+for(const b of BRANCHES)g+=seg(X(P["_j"+b.id]),pt(b.id),6);
+// reverse (opposing) moves: their path in a distinct color with arrows in the direction of the backing move
+let defs=`<marker id="rva" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="2.2" markerHeight="2.2" orient="auto"><path d="M0,0L10,5L0,10z" fill="#8a2e12"/></marker>`;
+// points between two adjacent blocks that follow the drawn track (loop arcs and wye necks)
+const TS=new Set(TOWN_LOOP.map(b=>b.id)),ang=(cx,[u,v])=>Math.atan2(v,u-cx);
+const arc=(cx,A,B,a0,a1)=>{let d=a1-a0;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;const o=[];for(let i=1;i<12;i++)o.push(onRR(cx,A,B,a0+d*i/12));return o};
+const via=(a,b)=>{if(TS.has(a)&&TS.has(b))return arc(cT,tA,tB,ang(cT,P[a]),ang(cT,P[b]));const k=[a,b].sort().join();
+ if(k==="BAU,WYE")return a==="BAU"?[...arc(cT,tA,tB,ang(cT,P.BAU),ang(cT,tBot)),tBot]:[tBot,...arc(cT,tA,tB,ang(cT,tBot),ang(cT,P.BAU))];
+ if(k==="SR,WYE")return a==="SR"?[...arc(cT,tA,tB,ang(cT,P.SR),ang(cT,tTop)),tTop]:[tTop,...arc(cT,tA,tB,ang(cT,tTop),ang(cT,P.SR))];
+ if(k==="CC,LL")return a==="CC"?[fN,fTop,...arc(cF,fA,fB,ang(cF,fTop),0)]:[...arc(cF,fA,fB,0,ang(cF,fBot)),fBot,fN];
+ if(k==="CC,FF")return a==="CC"?[fN,fTop,...arc(cF,fA,fB,ang(cF,fTop),ang(cF,P.FF))]:[...arc(cF,fA,fB,ang(cF,P.FF),ang(cF,fBot)),fBot,fN];
+ if(k==="FF,LL")return arc(cF,fA,fB,ang(cF,P[a]),ang(cF,P[b]));const br=BRANCHES.find(x=>(x.id===a||x.id===b));if(br)return a===br.id?[P["_j"+br.id]]:[P["_j"+br.id]];return[]};
+for(const t of M.tr.filter(t=>t.rev)){const ids=[t.blk,...t.rng];if(ids.length<2)continue;const pts=[pt(ids[0])];let arr="";
+ for(let i=1;i<ids.length;i++){const sp=[pts[pts.length-1],...via(ids[i-1],ids[i]).map(X),pt(ids[i])];pts.push(...sp.slice(1));
+  // one arrowhead at the middle of each block-to-block span, pointing the way the reverse move runs
+  let tot=0;const ls=[];for(let j=1;j<sp.length;j++){const l=Math.hypot(sp[j][0]-sp[j-1][0],sp[j][1]-sp[j-1][1]);ls.push(l);tot+=l}let h=tot/2,j=0;while(j<ls.length-1&&h>ls[j]){h-=ls[j];j++}
+  const a=sp[j],b=sp[j+1],f=ls[j]?h/ls[j]:0,cx=a[0]+(b[0]-a[0])*f,cy=a[1]+(b[1]-a[1])*f,dg=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI,z=vert?17:16;
+  if(tot>40)arr+=`<path d="M${z},0L${-z},${-z*.8}L${-z*.4},0L${-z},${z*.8}Z" transform="translate(${cx} ${cy}) rotate(${dg})" fill="#8a2e12"/>`}
+ g+=`<polyline points="${pts.map(p=>p.map(n=>n.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="#d9772b" stroke-opacity=".7" stroke-width="${vert?16:13}" stroke-linejoin="round" stroke-linecap="round"/>${arr}`}
+// block nodes on the track
+const R=vert?26:21,nr=vert?12:10;
+const holdAt=id=>M.tr.some(t=>t.blk===id&&(t.jhold||t.rhold||/^Holding$/.test((S.rep[t.t]||{}).st||"")));
+const NODES=ALLB.filter(b=>!b.track);
+for(const b of NODES){const[x,y]=pt(b.id);const o=M.occ[b.id],c=M.cl[b.id],bd=M.bad.has(b.id),rv=M.RS.has(b.id);const f=bd?"#c0261b":o?"#3b2414":rv?"#d9772b":c?"#e8c46a":"#fbf3dd";
+ gn+=`<g class="blk" data-b="${b.id}">${b.hold&&!b.stop?`<rect x="${x-nr}" y="${y-nr}" width="${nr*2}" height="${nr*2}" transform="rotate(45 ${x} ${y})" fill="${f}" stroke="#3b2414" stroke-width="3"/>`:`<circle cx="${x}" cy="${y}" r="${nr}" fill="${f}" stroke="#3b2414" stroke-width="3"/>`}</g>`}
+// train markers sit on the track at their block
+const cnt={};for(const t of M.tr){const[x,y]=pt(t.blk);const k=cnt[t.blk]=(cnt[t.blk]||0)+1;const e=engOf(t.t).split("/")[0];const lab=e!=="—"?e:t.t.slice(0,3).toUpperCase();const off=(k-1)*(R*2+4);const mx=vert?x:x+off,my=vert?y+off:y;OBS.push([mx,my,R+3]);
+ gm+=`<g><title>${esc(t.t)} · ${esc(ec(t.t))}${t.rev?" · ↩ reversing":""}</title><circle cx="${mx}" cy="${my}" r="${R}" fill="${t.rev?"#d9772b":"#8a2e12"}" stroke="#fbf3dd" stroke-width="3"/><text x="${mx}" y="${my+R*0.3}" text-anchor="middle" font-size="${lab.length>4?R*0.5:R*0.68}" font-weight="900" fill="#fff">${esc(lab)}</text></g>`}
+for(const b of NODES){const[x,y]=pt(b.id);OBS.push([x,y,nr+3])}
+// pill labels, placed off the track and pushed outward until clear of track, markers and other pills
+const fs=vert?22:18,ph=Math.round(fs*1.75),PL=[];
+const hit=r=>OBS.some(([x,y,rad])=>x>r.x-rad&&x<r.x+r.w+rad&&y>r.y-rad&&y<r.y+r.h+rad)||PL.some(q=>r.x<q.x+q.w+6&&r.x+r.w+6>q.x&&r.y<q.y+q.h+6&&r.y+r.h+6>q.y);
+const sdir=id=>{const p=pt(id),q=X([P[id][0]+DIR[id][0]*10,P[id][1]+DIR[id][1]*10]),l=Math.hypot(q[0]-p[0],q[1]-p[1])||1;return[(q[0]-p[0])/l,(q[1]-p[1])/l]};
+function pill(id,name,p,dirs,center){const w=Math.round(name.length*fs*0.6+26);let r=null;
+ for(const d of dirs){let dist=center?0:Math.abs(d[0])*w/2+Math.abs(d[1])*ph/2+nr+6;for(let i=0;i<70&&!r;i++){const cx=p[0]+d[0]*dist,cy=p[1]+d[1]*dist,c={x:cx-w/2,y:cy-ph/2,w,h:ph};if(!hit(c))r=c;dist+=5}if(r)break}
+ if(!r){const d=dirs[0],dist=Math.abs(d[0])*w/2+Math.abs(d[1])*ph/2+nr+6;r={x:p[0]+d[0]*dist-w/2,y:p[1]+d[1]*dist-ph/2,w,h:ph}}
+ PL.push(r);const o=M.occ[id],bd=M.bad.has(id)||holdAt(id),c=M.cl[id],rv=M.RS.has(id);
+ const fill=bd?"#c0261b":o?"#e8c46a":"#fbf3dd",tx=bd?"#fff":"#3b2414",st=bd?"#7d150d":rv?"#d9772b":c?"#c9a24a":"#3b2414";
+ if(!center){const lx=Math.max(r.x,Math.min(p[0],r.x+r.w)),ly=Math.max(r.y,Math.min(p[1],r.y+r.h));gl+=`<line x1="${p[0]}" y1="${p[1]}" x2="${lx}" y2="${ly}" stroke="#6b4a2b" stroke-width="1.8"/>`}
+ gp+=`<g class="blk" data-b="${id}"><rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${ph/2}" fill="${fill}" stroke="${st}" stroke-width="${c||rv||o||bd?3.5:2.2}"/><text x="${r.x+r.w/2}" y="${r.y+r.h/2+fs*0.35}" text-anchor="middle" font-size="${fs}" font-weight="bold" fill="${tx}">${esc(name)}</text></g>`}
+const rot=([a,b],s)=>[a*Math.cos(s)-b*Math.sin(s),a*Math.sin(s)+b*Math.cos(s)];
+for(const b of NODES){const d=sdir(b.id);pill(b.id,b.name,pt(b.id),[d,rot(d,0.5),rot(d,-0.5),rot(d,1),rot(d,-1),[-d[0],-d[1]]])}
+{const c=X([cF,0]);pill("LL","Lookout Loop",c,[[0,1],[0,-1],[1,0]],true)}
+const cap=(txt,p,an)=>{const[x,y]=X(p);an=an||(vert&&p[1]>10?"end":"middle");OBS.push([x,y,10]);return`<text x="${x}" y="${y}" text-anchor="${an}" font-size="${vert?20:15}" font-style="italic" fill="#6b4a2b" letter-spacing="2">${txt}</text>`};
+g+=cap("TOWN LOOP",[cT,6])+cap("MAIN · SINGLE TRACK",[(m0+m1)/2,vert?22:44]);
+// fit the view to everything drawn
+let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const[x,y,r]of OBS){x0=Math.min(x0,x-r);y0=Math.min(y0,y-r);x1=Math.max(x1,x+r);y1=Math.max(y1,y+r)}for(const r of PL){x0=Math.min(x0,r.x);y0=Math.min(y0,r.y);x1=Math.max(x1,r.x+r.w);y1=Math.max(y1,r.y+r.h)}
+const pad=14;box.innerHTML=`<svg viewBox="${x0-pad} ${y0-pad} ${x1-x0+pad*2} ${y1-y0+pad*2}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block;font-family:Georgia,'Times New Roman',serif"><defs>${defs}</defs>${g}${gl}${gn}${gp}${gm}</svg>`;
+$("mapk").innerHTML=M.tr.map(t=>`<span>${esc(ec(t.t))} · ${esc(t.t)}: ${esc(BI[t.blk].name)} → ${t.rev?`<b style="color:#b0561f">↩ REVERSING</b> to <b>${esc(BI[t.lim].name)}</b> via ${t.rng.slice(0,-1).map(b=>esc(BI[b].name)).join(", ")||"—"}`:t.jhold?"<b>HOLDING at Junction</b> until Hobo’s Hideout–Shady Rest is clear":t.rhold?`<b>HOLDING for reverse move</b>${t.lim&&t.lim!==t.blk?" · clear to <b>"+esc(BI[t.lim].name)+"</b>":""}`:t.lim?"clear to <b>"+esc(BI[t.lim].name)+"</b>"+(S.clr[t.t]?"":" (default)"):"no clearance"}${t.rng.some(b=>M.bad.has(b))||M.bad.has(t.blk)?' <b style="color:#c0261b">CONFLICT</b>':""}</span>`).join(" · ");
 $("mapw").style.display=M.tr.length||DSP?"":"none";
 const sel=$("dtr");const h=Object.keys(S.rep).map(t=>`<option${t===dTrain?" selected":""}>${esc(t)}</option>`).join("");if(sel.dataset.h!==h){sel.innerHTML=h;sel.dataset.h=h}if(!dTrain||!S.rep[dTrain])dTrain=sel.value}
 $("map").onclick=e=>{if(!DSP||document.body.classList.contains("disp"))return;const g=e.target.closest(".blk");if(!g||!dTrain)return;setClr(dTrain,g.dataset.b)};
@@ -353,7 +419,7 @@ const draw1=draw;draw=()=>{draw1();drawMap()};
 
 // test params
 if(q.has("sched"))loadSched(q.get("sched"));
-for(const v of q.getAll("add")){const[t,train,eng,frm,to]=v.split("|");S.rows.push({id:nid(),t:+t*60,train,eng:eng||"—",frm,to,hold:""})}
+for(const v of q.getAll("add")){const[t,train,eng,frm,to]=v.split("|");const rw={id:nid(),t:+t*60,train,eng:"",frm,to,hold:""};if(v.split("|")[5]==="rev")rw.rev=true;S.rows.push(rw)}
 if(q.has("t")){S.el=+q.get("t");S.run=false}
 if(q.has("hold"))S.ov[+q.get("hold")]="Held";
 if(q.has("cancel"))S.ov[+q.get("cancel")]="Cancelled";
