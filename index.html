@@ -312,7 +312,7 @@ P.WYE=[cT+rT+70,mid];
 const m0=P.WYE[0]+150,m1=cF-rF-60;MAIN.forEach((b,i)=>{P[b.id]=[m0+(m1-m0)*i/Math.max(1,MAIN.length-1),mid]});
 onCircle(cF,rF,FAR_LOOP,-Math.PI*0.75,Math.PI*0.75);
 for(const b of BRANCHES){const[x,y]=P[b.at];P[b.id]=[x,y+(b.kind==="spur"?(vert?215:120):0)]}
-const W=vert?Hh:L,H=vert?L:Hh+60,X=([u,v])=>vert?[v,u]:[u,v];
+const W=vert?Hh:L,H=vert?L:Hh+60,X=([u,v])=>vert?[Hh-v,u]:[L-u,v];
 const pt=id=>X(P[id]);const M=mapState();let g="";
 const line=(a,b,ex="")=>{const[x1,y1]=a,[x2,y2]=b;return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3b2414" stroke-width="7" stroke-linecap="round" ${ex}/>`};
 // balloons (teardrops): circle + neck to the wye / end of main
@@ -323,7 +323,7 @@ g+=line(tA,pt("WYE"))+line(tB,pt("WYE"));
 const fA=X([cF-rF*Math.cos(-0.35),mid+rF*sv*Math.sin(-0.35)]),fB=X([cF-rF*Math.cos(0.35),mid+rF*sv*Math.sin(0.35)]),fN=X([m1+40,mid]);
 g+=line(pt("WYE"),fN)+line(fN,fA)+line(fN,fB);
 for(const b of BRANCHES)g+=line(pt(b.at),pt(b.id));
-for(const l of LEGS){const a=pt(l.from),w=pt(l.via[0]);g+=`<path d="M${a[0]},${a[1]} L${w[0]},${w[1]}" stroke="#8a2e12" stroke-width="4" stroke-dasharray="12 8" fill="none"/>`;const p=pt(l.to);g+=`<text x="${vert?p[0]+95:p[0]}" y="${p[1]+(vert?55:50)}" text-anchor="${vert?"end":"middle"}" font-style="italic" font-size="${vert?24:18}" fill="#8a2e12">${l.label}</text>`}
+for(const l of LEGS){const a=pt(l.from),w=pt(l.via[0]);g+=`<path d="M${a[0]},${a[1]} L${w[0]},${w[1]}" stroke="#8a2e12" stroke-width="4" stroke-dasharray="12 8" fill="none"/>`;const p=pt(l.to);g+=`<text x="${vert?p[0]-95:p[0]}" y="${p[1]+(vert?55:50)}" text-anchor="${vert?"start":"middle"}" font-style="italic" font-size="${vert?24:18}" fill="#8a2e12">${l.label}</text>`}
 const tw=vert?190:150,th=vert?50:40,fs=vert?24:17;
 for(const b of ALLB){const[x,y]=pt(b.id);const o=M.occ[b.id],c=M.cl[b.id],bd=M.bad.has(b.id);const fill=o?"#6b4a2b":c?"#e8c46a":"#fbf3dd",st=bd?"#c0261b":"#3b2414";
 const nm=b.name,f=nm.length>14?fs*0.82:fs;g+=`<g class="blk" data-b="${b.id}"><rect x="${x-tw/2}" y="${y-th/2}" width="${tw}" height="${th}" rx="9" fill="${fill}" stroke="${st}" stroke-width="${bd?6:3}"/><text x="${x}" y="${y+f*0.36}" text-anchor="middle" font-size="${f}" font-weight="bold" fill="${o?"#fbf3dd":"#3b2414"}">${esc(nm)}</text></g>`}
