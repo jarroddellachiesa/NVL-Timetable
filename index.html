@@ -343,9 +343,9 @@ const DIR={}; // outward direction (u,v) for each block's label
 const TANG={SR:-0.3,TWN:-0.86,RRJ:0.86,BAU:0.3};TOWN_LOOP.forEach((b,i)=>{const a=(TANG[b.id]!=null?TANG[b.id]:-0.3-(i*1.4/Math.max(1,TOWN_LOOP.length-1)))*Math.PI;P[b.id]=onRR(cT,tA,tB,a);DIR[b.id]=nrm(cT,tA,tB,P[b.id])});
 P.WYE=[cT+tA+85,0];DIR.WYE=[0,-1];
 const m0=P.WYE[0]+150,m1=cF-fA-70;MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,0];DIR[b.id]=[0,-1]});
-const fN=[m1+45,0],fTop=[cF-fA,-fB*0.45],fBot=[cF-fA,fB*0.45],tTop=[cT+tA,-tB*0.45],tBot=[cT+tA,tB*0.45];
+const fN=[m1+45,0],fJ=[cF-fA,0],fTop=fJ,fBot=fJ,tTop=[cT+tA,-tB*0.45],tBot=[cT+tA,tB*0.45];
 // Lookout Loop: entered by the upper neck; the LL block starts at the Steamboat turnout on the top edge, Fort Frontier sits on the far (left) side
-const stbU=cF-fA*0.5;P.LL=[stbU,-fB];P.FF=[cF+fA,0];DIR.FF=[1,0];
+const stbU=cF-fA*0.5;P.LL=[stbU,-fB];P.FF=onRR(cF,fA,fB,-0.25*Math.PI);DIR.FF=nrm(cF,fA,fB,P.FF);
 for(const b of BRANCHES){if(b.at==="LL"){ // Steamboat: turnout on the loop's top edge (halfway between its middle and the corner nearest the main), siding runs straight up
  P["_j"+b.id]=[stbU,-fB];P[b.id]=[stbU,-fB-(vert?95:80)]}
  else if(b.loop==="town"){ // Car Barn: off the bottom side of the town loop, between Red Rock and Bautista
@@ -359,18 +359,19 @@ const loopD=(cx,A,B)=>{const pts=[];for(let i=0;i<160;i++){const p=X(onRR(cx,A,B
 const tw=7;
 g+=`<path d="${loopD(cT,tA,tB)}" fill="none" stroke="#3b2414" stroke-width="${tw}"/>`;
 {const o=M.occ.LL,c=M.cl.LL,bd=M.bad.has("LL"),rv=M.RS.has("LL");g+=`<path class="blk" data-b="LL" d="${loopD(cF,fA,fB)}" fill="${o?"rgba(107,74,43,.12)":"transparent"}" stroke="${bd?"#c0261b":rv?"#d9772b":o?"#6b4a2b":c?"#c9a24a":"#3b2414"}" stroke-width="${bd||o||c||rv?12:tw}" style="pointer-events:all"/>`}
-g+=seg(X(tTop),pt("WYE"),tw)+seg(X(tBot),pt("WYE"),tw)+seg(pt("WYE"),X(fN),tw)+seg(X(fN),X(fTop),tw)+seg(X(fN),X(fBot),tw);
+g+=seg(X(tTop),pt("WYE"),tw)+seg(X(tBot),pt("WYE"),tw)+seg(pt("WYE"),X(fN),tw)+seg(X(fN),X(fJ),tw); // one switch at fN: the balloon throat runs to the loop, which leaves and returns through it
 for(const b of BRANCHES)g+=seg(X(P["_j"+b.id]),pt(b.id),6);
 // reverse (opposing) moves: their path in a distinct color with arrows in the direction of the backing move
 let defs=`<marker id="rva" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="2.2" markerHeight="2.2" orient="auto"><path d="M0,0L10,5L0,10z" fill="#8a2e12"/></marker>`;
 // points between two adjacent blocks that follow the drawn track (loop arcs and wye necks)
 const TS=new Set(TOWN_LOOP.map(b=>b.id)),ang=(cx,[u,v])=>Math.atan2(v,u-cx);
-const arc=(cx,A,B,a0,a1)=>{let d=a1-a0;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;const o=[];for(let i=1;i<12;i++)o.push(onRR(cx,A,B,a0+d*i/12));return o};
+const arc=(cx,A,B,a0,a1,sg)=>{let d=a1-a0;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;if(sg&&Math.sign(d)!==sg)d+=sg*2*Math.PI;const o=[];for(let i=1;i<24;i++)o.push(onRR(cx,A,B,a0+d*i/24));return o};
 const via=(a,b)=>{if(TS.has(a)&&TS.has(b))return arc(cT,tA,tB,ang(cT,P[a]),ang(cT,P[b]));const k=[a,b].sort().join();
  if(k==="BAU,WYE")return a==="BAU"?[...arc(cT,tA,tB,ang(cT,P.BAU),ang(cT,tBot)),tBot]:[tBot,...arc(cT,tA,tB,ang(cT,tBot),ang(cT,P.BAU))];
  if(k==="SR,WYE")return a==="SR"?[...arc(cT,tA,tB,ang(cT,P.SR),ang(cT,tTop)),tTop]:[tTop,...arc(cT,tA,tB,ang(cT,tTop),ang(cT,P.SR))];
- if(k==="CC,LL")return a==="CC"?[fN,fTop,...arc(cF,fA,fB,ang(cF,fTop),ang(cF,P.LL))]:[...arc(cF,fA,fB,ang(cF,P.LL),ang(cF,fTop)),fTop,fN];
- if(k==="CC,FF")return a==="CC"?[fN,fBot,...arc(cF,fA,fB,ang(cF,fBot),ang(cF,P.FF))]:[...arc(cF,fA,fB,ang(cF,P.FF),ang(cF,fBot)),fBot,fN];
+ // Lookout Loop: throat from the single switch (fN) to fJ; loop runs up and over the top (LL, Steamboat turnout), past Fort Frontier (top-left), down and round the bottom back to fJ
+ if(k==="CC,LL")return a==="CC"?[fN,fJ,...arc(cF,fA,fB,Math.PI,ang(cF,P.LL),1)]:[...arc(cF,fA,fB,ang(cF,P.LL),Math.PI,-1),fJ,fN];
+ if(k==="CC,FF")return a==="CC"?[fN,fJ,...arc(cF,fA,fB,Math.PI,ang(cF,P.FF),-1)]:[...arc(cF,fA,fB,ang(cF,P.FF),Math.PI,1),fJ,fN];
  if(k==="FF,LL")return arc(cF,fA,fB,ang(cF,P[a]),ang(cF,P[b]));const br=BRANCHES.find(x=>(x.id===a||x.id===b));if(br)return a===br.id?[P["_j"+br.id]]:[P["_j"+br.id]];return[]};
 for(const t of M.tr.filter(t=>t.rev)){const ids=[t.blk,...t.rng];if(ids.length<2)continue;const pts=[pt(ids[0])];let arr="";
  for(let i=1;i<ids.length;i++){const sp=[pts[pts.length-1],...via(ids[i-1],ids[i]).map(X),pt(ids[i])];pts.push(...sp.slice(1));
