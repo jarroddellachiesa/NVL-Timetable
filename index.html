@@ -344,9 +344,10 @@ const TANG={SR:-0.3,TWN:-0.86,RRJ:0.86,BAU:0.3};TOWN_LOOP.forEach((b,i)=>{const 
 P.WYE=[cT+tA+85,0];DIR.WYE=[0,-1];
 const m0=P.WYE[0]+150,m1=cF-fA-70;MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,0];DIR[b.id]=[0,-1]});
 const fN=[m1+45,0],fTop=[cF-fA,-fB*0.45],fBot=[cF-fA,fB*0.45],tTop=[cT+tA,-tB*0.45],tBot=[cT+tA,tB*0.45];
-P.LL=[cF+fA,0];P.FF=onRR(cF,fA,fB,-0.36*Math.PI);DIR.FF=nrm(cF,fA,fB,P.FF);
-for(const b of BRANCHES){if(b.at==="LL"){ // Steamboat: turnout just past the Lookout Loop wye (upper leg), siding runs above the loop
- const k=0.55;P["_j"+b.id]=[fN[0]+(fTop[0]-fN[0])*k,fTop[1]*k];P[b.id]=[cF-fA*0.35,-fB-62]}
+// Lookout Loop: entered by the upper neck; the LL block starts at the Steamboat turnout on the top edge, Fort Frontier sits on the far (left) side
+const stbU=cF-fA*0.5;P.LL=[stbU,-fB];P.FF=[cF+fA,0];DIR.FF=[1,0];
+for(const b of BRANCHES){if(b.at==="LL"){ // Steamboat: turnout on the loop's top edge (halfway between its middle and the corner nearest the main), siding runs straight up
+ P["_j"+b.id]=[stbU,-fB];P[b.id]=[stbU,-fB-(vert?95:80)]}
  else if(b.loop==="town"){ // Car Barn: off the bottom side of the town loop, between Red Rock and Bautista
  P["_j"+b.id]=[cT-tA*0.15,tB];P[b.id]=[cT-tA*0.15-95,tB+62]}
  else{const[x,y]=P[b.at];P["_j"+b.id]=[x,y];P[b.id]=[x,y+110]}
@@ -368,8 +369,8 @@ const arc=(cx,A,B,a0,a1)=>{let d=a1-a0;while(d>Math.PI)d-=2*Math.PI;while(d<-Mat
 const via=(a,b)=>{if(TS.has(a)&&TS.has(b))return arc(cT,tA,tB,ang(cT,P[a]),ang(cT,P[b]));const k=[a,b].sort().join();
  if(k==="BAU,WYE")return a==="BAU"?[...arc(cT,tA,tB,ang(cT,P.BAU),ang(cT,tBot)),tBot]:[tBot,...arc(cT,tA,tB,ang(cT,tBot),ang(cT,P.BAU))];
  if(k==="SR,WYE")return a==="SR"?[...arc(cT,tA,tB,ang(cT,P.SR),ang(cT,tTop)),tTop]:[tTop,...arc(cT,tA,tB,ang(cT,tTop),ang(cT,P.SR))];
- if(k==="CC,LL")return a==="CC"?[fN,fTop,...arc(cF,fA,fB,ang(cF,fTop),0)]:[...arc(cF,fA,fB,0,ang(cF,fBot)),fBot,fN];
- if(k==="CC,FF")return a==="CC"?[fN,fTop,...arc(cF,fA,fB,ang(cF,fTop),ang(cF,P.FF))]:[...arc(cF,fA,fB,ang(cF,P.FF),ang(cF,fBot)),fBot,fN];
+ if(k==="CC,LL")return a==="CC"?[fN,fTop,...arc(cF,fA,fB,ang(cF,fTop),ang(cF,P.LL))]:[...arc(cF,fA,fB,ang(cF,P.LL),ang(cF,fTop)),fTop,fN];
+ if(k==="CC,FF")return a==="CC"?[fN,fBot,...arc(cF,fA,fB,ang(cF,fBot),ang(cF,P.FF))]:[...arc(cF,fA,fB,ang(cF,P.FF),ang(cF,fBot)),fBot,fN];
  if(k==="FF,LL")return arc(cF,fA,fB,ang(cF,P[a]),ang(cF,P[b]));const br=BRANCHES.find(x=>(x.id===a||x.id===b));if(br)return a===br.id?[P["_j"+br.id]]:[P["_j"+br.id]];return[]};
 for(const t of M.tr.filter(t=>t.rev)){const ids=[t.blk,...t.rng];if(ids.length<2)continue;const pts=[pt(ids[0])];let arr="";
  for(let i=1;i<ids.length;i++){const sp=[pts[pts.length-1],...via(ids[i-1],ids[i]).map(X),pt(ids[i])];pts.push(...sp.slice(1));
