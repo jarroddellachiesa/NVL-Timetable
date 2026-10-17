@@ -342,7 +342,7 @@ const nrm=(cx,A,B,[u,v])=>{const e=.5,gx=sdf(cx,A,B,u+e,v)-sdf(cx,A,B,u-e,v),gy=
 const DIR={}; // outward direction (u,v) for each block's label
 const TANG={SR:-0.3,TWN:-0.86,RRJ:0.86,BAU:0.3};TOWN_LOOP.forEach((b,i)=>{const a=(TANG[b.id]!=null?TANG[b.id]:-0.3-(i*1.4/Math.max(1,TOWN_LOOP.length-1)))*Math.PI;P[b.id]=onRR(cT,tA,tB,a);DIR[b.id]=nrm(cT,tA,tB,P[b.id])});
 P.WYE=[cT+tA+85,0];DIR.WYE=[0,-1];
-const m0=P.WYE[0]+150,m1=cF-fA-70;const BELOW=new Set(["CC","IG"]); // main blocks labelled under the track
+const m0=P.WYE[0]+150,m1=cF-fA-70;const BELOW=new Set(["CC","IG","PP","HH"]); // main blocks labelled under the track
 MAIN.forEach((b,i)=>{const f=b.pos!=null?b.pos:i/Math.max(1,MAIN.length-1);P[b.id]=[m0+(m1-m0)*f,0];DIR[b.id]=BELOW.has(b.id)?[0,1]:[0,-1]});
 const fN=[m1+45,0],fJ=[cF-fA,0],fTop=fJ,fBot=fJ,tTop=[cT+tA,-tB*0.45],tBot=[cT+tA,tB*0.45];
 // Lookout Loop: entered by the upper neck; the LL block starts at the Steamboat turnout on the top edge, Fort Frontier sits on the far (left) side
@@ -410,7 +410,7 @@ const rot=([a,b],s)=>[a*Math.cos(s)-b*Math.sin(s),a*Math.sin(s)+b*Math.cos(s)];
 for(const b of NODES){const d=sdir(b.id);pill(b.id,b.name,pt(b.id),[d,rot(d,0.5),rot(d,-0.5),rot(d,1),rot(d,-1),[-d[0],-d[1]]])}
 {const c=X(vert?[cF+fA+ph/2+16,0]:[cF,fB+ph/2+16]);pill("LL","Lookout Loop",c,[[0,1],[1,0],[-1,0]],true)} // name label under the loop
 const cap=(txt,p,an)=>{const[x,y]=X(p);an=an||(vert&&p[1]>10?"end":"middle");OBS.push([x,y,10]);return`<text x="${x}" y="${y}" text-anchor="${an}" font-size="${vert?20:15}" font-style="italic" fill="#6b4a2b" letter-spacing="2">${txt}</text>`};
-g+=cap("TOWN LOOP",[cT,6])+cap("MAIN · SINGLE TRACK",[(P.HH[0]+P.PP[0])/2,vert?22:44]);
+g+=cap("TOWN LOOP",[cT,6])+cap("MAIN · SINGLE TRACK",[(P.PP[0]+P.IG[0])/2,vert?-22:-26],vert?"start":"middle");
 // fit the view to everything drawn
 let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const[x,y,r]of OBS){x0=Math.min(x0,x-r);y0=Math.min(y0,y-r);x1=Math.max(x1,x+r);y1=Math.max(y1,y+r)}for(const r of PL){x0=Math.min(x0,r.x);y0=Math.min(y0,r.y);x1=Math.max(x1,r.x+r.w);y1=Math.max(y1,r.y+r.h)}
 const pad=14;box.innerHTML=`<svg viewBox="${x0-pad} ${y0-pad} ${x1-x0+pad*2} ${y1-y0+pad*2}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;${vert?"max-width:520px;margin:0 auto;":""}display:block;font-family:Georgia,'Times New Roman',serif"><defs>${defs}</defs>${g}${gl}${gn}${gp}${gm}</svg>`;
